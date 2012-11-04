@@ -31,12 +31,16 @@ function MenuItem() {
     this.price = null;
     this.name = null;
     this.ingredients = new Array();
+    this.description = null;
 
     this.getPrice = function() { return this.price; }
     this.getName = function() { return this.name; }
 
     this.setPrice = function(price) { this.price = price; return this; }
     this.setName = function(name) { this.name = name; return this; }
+
+    this.getDescription = function() { return this.description; }
+    this.setDescription = function(descr ) { this.description = descr; return this; }
 
     /* How we add ingredients */
     this.addIngredient = function(ingredient) { this.ingredients.push( ingredient ); return this; }
@@ -52,6 +56,41 @@ function MenuItem() {
             }
         }
         return foundIngredient;
+    }
+}
+
+function Menu() {
+    this.name = null;
+    this.menuItems = new Array();
+
+    this.getName = function() { return this.name; }
+    this.setName = function(name) { this.name = name; return this; }
+
+    /* Methods for adding or removing menu items */
+    this.addItem = function(menuitem) { this.menuItems.push(menuitem); return this; }
+    this.removeItem = function(menuitemName) {
+        var foundItem = null;
+        for( var i in this.menuItems ) {
+            if( this.menuItems[i].getName() === menuitemName ) {
+                foundItem = this.menuItems[i];
+                this.menuItems.splice( i, 1);
+                break;
+            }
+        }
+        return foundItem;
+    }
+
+    this.getMenus = function() { return this.menuItems; }
+
+    this.findItem = function(menuitemname) {
+        var foundItem = null;
+        for( var i in this.menuItems ) {
+            if( this.menuItems[i].getName() === menuitemname ) {
+                foundItem = this.menuItems[i];
+                break;
+            }
+        }
+        return foundItem;
     }
 }
 

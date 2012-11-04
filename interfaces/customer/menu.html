@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>The Good Burger - Customer Interface</title>
+
+    <script src="scripts/jquery.js"></script>
+
+    <script src="scripts/DataTypes.js"></script>
+    <script src="scripts/pageventcallbackregistrar.js"></script>
+    <script src="scripts/MenuManager.js"></script>
+    <script src="scripts/menupagebrowser.js"></script>
+    <script src="scripts/foodcart.js"></script>
+
+
+    <script src="scripts/jqm.js"></script>
+    <script src="scripts/jqmsubpage.js"></script>
+
+    <link rel="stylesheet" href="css/jqm.css"/>
+    <link rel="stylesheet" href="css/jqmiconpack.css"/>
+    <link rel="stylesheet" href="css/style.css"/>
+    <meta name="viewport" content="width=device-width, height=device-height, minimum-scale=1, maximum-scale=1, user-scalable=no"/>
+
+</head>
+<body>
+<div data-role="page" id="menu">
+    <header data-role="header" data-theme="c">
+        <h4>Our Menus</h4>
+        <div data-role="navbar">
+            <ul id="menu-nav-list" >
+                <li><a href="#" >Burgers</a></li>
+                <li><a href="#">Drinks</a></li>
+                <li><a href="#">Desserts</a></li>
+            </ul>
+        </div>
+    </header>
+    </br>
+    <footer data-role="footer" data-theme="c">
+        <div class="ui-grid-a">
+            <div class="ui-block-a">
+                <a href="#confirm-order" data-role="button" data-theme="b" data-icon="ok" data-iconpos="bottom">Confirm Order</a>
+            </div>
+            <div class="ui-block-b">
+                <a href="#confirm-cart-clear" data-role="button" data-icon="delete" data-iconpos="bottom" data-rel="popup" data-position-to="window">Clear Cart</a>
+            </div>
+        </div>
+        <div class="ui-grid-solo">
+            <a href="index.html" data-role="button" data-icon="back" data-iconpos="bottom">Main Menu</a>
+        </div>
+    </footer>
+
+    <div id="confirm-order" data-role="subpage-dialog">
+        <header data-role="header" data-theme="d">
+            <h1>Confirm Order</h1>
+        </header>
+        <div data-role="content">
+            <ul data-role="listview" data-inset="true">
+                <li data-role="list-divider" id="orderconfirmation-listdivider">Items to Order</li>
+            </ul>
+            </br>
+            <div class="ui-grid-solo">
+                <a href="#" id="post-order" data-role="button" data-theme="b">Confirm</a>
+            </div>
+        </div>
+    </div>
+
+    <div data-role="content" class="menu-template" style="display: none">
+
+        <div class="secondary">
+            <ul data-role="listview" class="menuitem-nav"></ul>
+        </div>
+
+        <div class="primary menuitem-canvas">
+            <div class="menuitem-content-template" style="display: none">
+                <div class="ui-grid-solo">
+                    <h4 class="menuitem-banner ui-title"></h4>
+                </div>
+                <div class="ui-grid-a">
+                    <div class="ui-block-a menuitem-image">
+                        <!--<img class=""/>-->
+                    </div>
+                    <div class="ui-block-b">
+                        <p class="menuitem-description"></p>
+                    </div>
+                </div>
+                <fieldset data-role="controlgroup" class="menuitem-controls" data-type="horizontal"></fieldset>
+                <div class="ui-grid-solo">
+                    <a href="#" data-role="button" class="add-to-cart" data-theme="b">Add</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="foodcart" data-theme="e">
+            <ul data-role="listview">
+                <li data-role="list-divider">Food Cart</li>
+
+            </ul>
+        </div>
+    </div>
+
+    <div data-role="popup" id="confirm-cart-clear" data-theme="c" data-overlay-theme="a" class="ui-content">
+        <h4 class="ui-title">Are you sure you want to clear your cart?</h4>
+        <a href="#" data-rel="back" data-theme="b" data-role="button" data-inline="true">No, I don't</a>
+        <a href="#" data-rel="back" id="clear-cart" data-role="button" data-inline="true">Yes, Please</a>
+    </div>
+</div>
+</body>
+</html>

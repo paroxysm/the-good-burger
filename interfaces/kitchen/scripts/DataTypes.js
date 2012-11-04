@@ -55,6 +55,27 @@ function MenuItem() {
     }
 }
 
+function Menu() {
+    this.name = null;
+    this.items = new Array();
+
+    this.getName = function() { return this.name; }
+    this.setName = function(name) { this.name = name; return this; }
+
+    this.addItem = function(item) { return this.items.push(item); return this; }
+    this.removeItem = function(itemname) {
+        var foundItem = null;
+        for(var i in this.items) {
+            if( this.items[i].getName() === itemname) {
+                foundItem = itemname;
+                this.items.splice(i,1);
+                break;
+            }
+        }
+        return foundItem;
+    }
+}
+
 function Order() {
     this.orderNumber = null
     this.timeStamp = null;

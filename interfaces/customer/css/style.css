@@ -1,0 +1,78 @@
+.ui-content .ui-listview {
+    margin: 0;
+    padding: 0;
+}
+.secondary {
+    width : 20%;
+    padding: 0;
+    margin: 0;
+    margin-right : 2%;
+    display: inline-block;
+    float : left;
+    box-sizing: border-box;
+}
+.secondary * {
+    box-sizing: border-box;
+}
+.primary {
+    width :60%;
+    padding: 5px;
+    margin: 0;
+    border-style: inset;
+    border-width: 2px;
+    border-color: black;
+    display: inline-block;
+    float : left;
+    clear : none;
+    box-sizing: border-box;
+}
+.foodcart {
+    width : 17%;
+    min-height: 100px;
+    display: inline;
+    float : right;
+    box-sizing: border-box;
+    border-style: solid;
+    border-radius: 5px;
+    border-color: black;
+    clear : none;
+    /*overflow: hidden;*/
+}
+
+#advertisment-space {
+    width : 100%;
+    height : 300px;
+    border-radius: 5px;
+    border-color: #000000;
+    border-width: 1px;
+    border-style: solid;
+    /*background-color: #000000;*/
+    /*display : inline-block;*/
+}
+
+.loading {
+    background-image: url('../res/loaderbig.gif');
+    background-repeat: no-repeat;
+    background-position: center;
+    min-height: 100px;
+}
+
+.menuitem-banner {
+    text-align: center;
+}
+.removecontrol:before {
+    content :url(../res/delete.gif);
+    color : red;
+    top : -5px;
+    right : -1%;
+    width : 3px;
+    height : 3px;
+     position: relative;
+}
+.removecontrol:hover {
+    cursor : pointer;
+}
+
+.foodcartprice {
+    color : red;
+}

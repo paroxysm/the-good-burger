@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>The Good Burger - Customer Interface</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=no"/>
+    <script src="scripts/jquery.js"></script>
+    <script src="scripts/jqm.js"></script>
+    <script src="scripts/jqmsubpage.js"></script>
+    <script src="scripts/qunit.js"></script>
+    <link rel="stylesheet" href="css/jqm.css"/>
+    <link rel="stylesheet" href="css/jqmiconpack.css"/>
+</head>
+<body>
+<div data-role="page" id="post-order" >
+    <div data-role="header" data-theme="c">
+        <h3>Payment Screen</h3>
+    </div>
+    <div data-role="content">
+        <ul data-role="listview" data-inset="true">
+            <li>Item 1</li>
+            <li>Item 2</li>
+            <li>Item 3</li>
+            <li>Item 4</li>
+            <li>Item 5</li>
+        </ul>
+        </br>
+        <a href="#" data-role="button" data-theme="b">Pay Order</a>
+    </div>
+    <footer data-role="footer" data-theme="c">
+        <div data-role="navbar" data-iconpos="top">
+            <ul>
+                <li><a href="#">Request Refill</a></li>
+                <li><a href="#">Add Extra Items</a></li>
+                <li><a href="#">Request Assistance</a></li>
+            </ul>
+        </div>
+    </footer>
+
+    <div data-role="subpage" id="payment-screen">
+        <header data-role="header">
+            <h4>Pay your Bill</h4>
+        </header>
+        <div data-role="content">
+
+        </div>
+    </div>
+</div>
+</body>
+</html>

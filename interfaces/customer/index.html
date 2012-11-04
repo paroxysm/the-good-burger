@@ -1,9 +1,45 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title></title>
+    <title>The Good Burger - Customer Interface</title>
+    <script src="scripts/jquery.js"></script>
+
+    <script src="scripts/DataTypes.js"></script>
+    <script src="scripts/pageventcallbackregistrar.js"></script>
+    <script src="scripts/MenuManager.js"></script>
+    <script src="scripts/menupagebrowser.js"></script>
+    <script src="scripts/foodcart.js"></script>
+
+
+    <script src="scripts/jqm.js"></script>
+    <script src="scripts/jqmsubpage.js"></script>
+
+    <link rel="stylesheet" href="css/jqm.css"/>
+    <link rel="stylesheet" href="css/jqmiconpack.css"/>
+    <link rel="stylesheet" href="css/style.css"/>
+    <meta name="viewport" content="width=device-width, height=device-height, minimum-scale=1, maximum-scale=1, user-scalable=no"/>
+    <script>
+        $.post("controller.php", {type : "Hello", payload: "yadayaydyayda"}).error( function (xhr, text, exception ) { console.log("Error :"+ text); })
+                .success( function(data) { console.log("Data :"+data); });
+    </script>
 </head>
 <body>
-
+<div data-role="page" id="home">
+    <header data-role="header" data-theme="c">
+        <h1>The Good Burger</h1>
+    </header>
+    <div data-role="content">
+        <div id="advertisment-space" class="loading"></div>
+        </br>
+        <div class="ui-grid-a">
+            <div class="ui-block-a">
+                <a href="menu.html" data-role="button" data-theme="b">Place Order</a>
+            </div>
+            <div class="ui-block-b">
+                <a href="#" data-role="button">Call Waiter to Place Order</a>
+            </div>
+        </div>
+    </div>
+</div>
 </body>
 </html>

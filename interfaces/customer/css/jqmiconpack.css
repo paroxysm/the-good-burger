@@ -1,4 +1,5 @@
 /*
+/*
 	The following declaration increase the size of the "dot" which contains the icon
 	This is because some of the font awesome icons are larger than jQuery Mobile icons
 	It applies to ALL occurrences, but can be commented out or removed if necessary
