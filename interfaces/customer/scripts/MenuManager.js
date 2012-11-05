@@ -7,13 +7,36 @@
  */
 
 var MenuMgr = function() {
-    var items = [ new MenuItem().setName("burger 1").setPrice(4.99),
-        new MenuItem().setName("burger 2").setPrice(5.99),
-        new MenuItem().setName("burger 3").setPrice(6.99)
+    var ingredients1 = [ new Ingredient().setName("ingredient 1"),
+        new Ingredient().setName("ingredient 2"),
+        new Ingredient().setName("ingredient 3") ,
+        new Ingredient().setName("ingredient 10")];
+    var ingredients2 = [ new Ingredient().setName("ingredient 4"),
+        new Ingredient().setName("ingredient 5"),
+        new Ingredient().setName("ingredient 6") ];
+    var ingredients2 = [ new Ingredient().setName("ingredient 7"),
+        new Ingredient().setName("ingredient 8"),
+        new Ingredient().setName("ingredient 9") ];
+
+    var items = [ new Recipe().setName("burger 1").setPrice(4.99),
+        new Recipe().setName("burger 2").setPrice(5.99),
+        new Recipe().setName("burger 3").setPrice(6.99)
     ];
-    var items2 = [ new MenuItem().setName("burger 4").setPrice(2.99),
-    new MenuItem().setName("burger 5").setPrice(3.99),
-    new MenuItem().setName("burger 6").setPrice(4.50) ];
+    var items2 = [ new Recipe().setName("burger 4").setPrice(2.99),
+        new Recipe().setName("burger 5").setPrice(3.99),
+        new Recipe().setName("burger 6").setPrice(4.50) ];
+
+    for( var i in ingredients1 ) {
+        items[0].addIngredient( ingredients1[i] );
+        items2[0].addIngredient(ingredients1[i] );
+        items[2].addIngredient( ingredients1[i] );
+        items2[2].addIngredient( ingredients1[i] );
+    }
+    for( var i in ingredients2 ) {
+        items[1].addIngredient( ingredients2[i] );
+        items2[1].addIngredient( ingredients2[i] );
+    }
+
 
     var sampleMenu = new Menu().setName("Burger Test Menu");
     var sampleMenu2 = new Menu().setName("Burger Test Menu 2");
@@ -21,15 +44,15 @@ var MenuMgr = function() {
     var sampleMenu4 = new Menu().setName("Burger Test Menu 4");
     var sampleMenu5 = new Menu().setName("Burger Test Menu 5");
     for( var i in items ) {
-        sampleMenu.addItem( items[i] );
+        sampleMenu.addRecipe( items[i] );
 
-        sampleMenu3.addItem( items[i] );
+        sampleMenu3.addRecipe( items[i] );
 
-        sampleMenu5.addItem( items[i] );
+        sampleMenu5.addRecipe( items[i] );
     }
     for( var i in items2 ) {
-        sampleMenu2.addItem( items2[i] );
-        sampleMenu4.addItem( items2[i] );
+        sampleMenu2.addRecipe( items2[i] );
+        sampleMenu4.addRecipe( items2[i] );
     }
 //    var menus = new Array(); //stores our menus objects
     var menus = [ sampleMenu, sampleMenu2, sampleMenu3, sampleMenu4, sampleMenu5 ];

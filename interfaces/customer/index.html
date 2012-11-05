@@ -19,7 +19,7 @@
     <link rel="stylesheet" href="css/style.css"/>
     <meta name="viewport" content="width=device-width, height=device-height, minimum-scale=1, maximum-scale=1, user-scalable=no"/>
     <script>
-        $.post("controller.php", {type : "Hello", payload: "yadayaydyayda"}).error( function (xhr, text, exception ) { console.log("Error :"+ text); })
+        $.post("controller.php", {request_type : "Hello", payload: "yadayaydyayda"}).error( function (xhr, text, exception ) { console.log("Error :"+ text); })
                 .success( function(data) { console.log("Data :"+data); });
     </script>
 </head>

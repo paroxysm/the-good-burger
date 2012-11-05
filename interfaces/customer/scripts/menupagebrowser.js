@@ -12,10 +12,8 @@
     /* Listen for pagecreate to initialize our dynamic menus */
     PECR.registerCallback("menu", "pagecreate", initialize);
 
-
-    var currentSelectedItem;
     var currentVisibleMenu = null;
-    var currentVisibleMenuItem = null;
+    var currentVisibleRecipe = null;
 
     /* Initializes controls(ie, binding events) for this page */
     function initialize(evt, page) {
@@ -38,6 +36,7 @@
 
     }
 
+    /* This is responsible for creating the menu markup at the top of the toolbar */
     function populateMenuNavList(evt, page ) {
         if( !MenuPageContext.length ) throw new Error("populateMenuNavList arg#1(evt) is invalid");
 
@@ -75,7 +74,7 @@
                 anchorClone.addClass("ui-btn-active ui-state-persist");
             }
         }
-
+        /* Handler for when one of the menus at the top is clicked, it methods to show that menu */
         function onMenuToolbarClick(evt) {
             //retrieve the clicked anchor object, with the context being our 'ul' toolbar
             var clickedAnchor = $(evt.target, menuNavToolbar);
@@ -89,12 +88,18 @@
         }
     }
 
+    /* Responsible for displaying the specified menu, from the recipes to the recipe content
+    *   Params :
+    *       menuName - the name of the menu to show
+    *       pageContext - object that contains the template elements
+    *       Returns : nothing
+    */
     function showMenuDOM(menuname, pageContext) {
         //we are already visible
         if( currentVisibleMenu === menuname )
             return;
         //Always clear the current selected item when showing a new menu
-        currentVisibleMenuItem = null;
+        currentVisibleRecipe = null;
         //get the menu object
         var menuObject = MenuMgr.findMenu(menuname);
         if( !menuObject ) throw new Error("populateMenuDOM, a menu name of '%s' was not found!",menuname);
@@ -120,7 +125,12 @@
         menuToshow.show();
     }
 
-    /* called when we click on a menu link from the menu nav toolbar */
+    /* Responsible for creating the markup for the menu object specified.
+        Params :
+            menuObject - the menu object to create markup for
+            pageContext - where to search for the template elements( for performance improvement )
+        Returns : a markup element as a jQuery collection.
+     */
     function populateMenuDOM(menuObject, pageContext) {
         //get our menu template object
         var menuTemplate = $('.menu-template', pageContext);
@@ -141,7 +151,12 @@
 
         return menuView;
     }
-    /* Called to populate the list clickable menu items */
+    /* Responsible for creating the markup to list the recipes for the menu object
+    *   Params:
+    *       context - Where to search for the required markup
+    *       menuObject - the menu object to list recipes for.
+    *   Returns : nothing
+    */
     function populateMenuItemNavList(context, menuObject ) {
         //our li and a template objects that we insert into the nav list
         var liTemplate = $(document.createElement('li') );
@@ -153,15 +168,15 @@
         //first clear the list
         itemList.empty();
         //for menu item, we create a list entry for it and bind the needed events
-        var menuItems = menuObject.getMenus();
+        var menuItems = menuObject.getRecipes();
         for( var i = 0; i < menuItems.length; ++i) {
             var liClone = liTemplate.clone();
             var anchorClone = anchorTemplate.clone();
             anchorClone.text( menuItems[i].getName() );
             //If we have no previously selected object, select the first menu item to be populated and apply 'selected' styles
-            if( i == 0 && currentVisibleMenuItem == null ) {
+            if( i == 0 && currentVisibleRecipe == null ) {
                 anchorClone.addClass('ui-btn-active').addClass('ui-state-persist');
-                showMenuItem(menuItems[i].getName(), context);
+                showRecipe(menuItems[i].getName(), context);
             }
             anchorClone.attr('href', '#');
             //bind on 'tap' jqm evt handler
@@ -183,29 +198,35 @@
             //apply 'selected' style
             anchorElement.addClass('ui-btn-active').addClass('ui-state-persist');
             //show/create menu item view for the clicked menu item
-            showMenuItem( clickedMenuItemName, context);
+            showRecipe( clickedMenuItemName, context);
 
         }
     }
 
-    function showMenuItem(menuitemname, context) {
-        if( currentVisibleMenuItem === menuitemname ) return;
+    /* Responsible for showing the content of the specified recipe name
+    *  Params:
+    *       recipename - the name of the recipe to show
+    *       context - where to search for template elements
+*       Returns: nothing
+*       */
+    function showRecipe(recipename, context) {
+        if( currentVisibleRecipe === recipename ) return;
 
         //get the menu item object using the currentVisibleMenu
-        var menuItem = MenuMgr.findMenu(currentVisibleMenu).findItem(menuitemname);
-        if( !menuItem ) throw new Error("showMenuItem, clicked menu item could not be found!");
+        var menuItem = MenuMgr.findMenu(currentVisibleMenu).findRecipe(recipename);
+        if( !menuItem ) throw new Error("showRecipe, clicked menu item could not be found!");
 
         //get our canvas object
         var menuitemcanvas = $('.menuitem-canvas', context);
         if( !menuitemcanvas.length ) throw new Error("showMenuItem, menuitemcanvas is non existent!");
 
         //check to see if we already have the dom created
-        var menucontent = $("[menuitem-name=\""+menuitemname+"\"]", menuitemcanvas);
+        var menucontent = $("[menuitem-name=\""+recipename+"\"]", menuitemcanvas);
         if( !menucontent.length )
-            menucontent = populateMenuItemContent(menuitemcanvas, menuItem );
+            menucontent = populateRecipeContent(menuitemcanvas, menuItem );
         //check to see if we are already displaying another menu item
-        if( currentVisibleMenuItem ) {
-            var currentvieweditem = $("[menuitem-name=\""+currentVisibleMenuItem+"\"]", menuitemcanvas);
+        if( currentVisibleRecipe ) {
+            var currentvieweditem = $("[menuitem-name=\""+currentVisibleRecipe+"\"]", menuitemcanvas);
             if(!currentvieweditem.length )
                 throw new Error("showMenuItem, oh o, currentviewditem is non existent yet currentVisibleMenuItem is non null");
             else
@@ -215,12 +236,17 @@
         menuitemcanvas.append( menucontent );
         menucontent.show();
         menucontent.trigger("create");
-        currentVisibleMenuItem = menuitemname;
+        currentVisibleRecipe = recipename;
 
         /************** INNER FUNCTIONS *****************************/
 
-        /* Called to create the mark up for the specified menuitem object */
-        function populateMenuItemContent(context, menuItem) {
+        /* Called to create the mark up for the specified menuitem object
+        *   Params :
+        *       context - where to search for template elements
+        *       recipe - the recipe to show information about
+    *       Returns :
+    *           a jQuery collection contained a markup element that has been formatted and has data injected to. */
+        function populateRecipeContent(context, recipe) {
             var menuitem_content_template = $('.menuitem-content-template', context );
             if( !menuitem_content_template.length ) throw new Error("populateMenuItemContent, menuitem_content_template is non existent!");
 
@@ -229,38 +255,67 @@
             //remove template class
             contentClone.removeClass("menuitem-content-template");
             //mark it w/ an attribute of our menu items name
-            contentClone.attr('menuitem-name', menuItem.getName() );
+            contentClone.attr('menuitem-name', recipe.getName() );
             //set the banner
             var banner = $('.menuitem-banner', contentClone);
-            banner.text(menuItem.getName() );
+            banner.text(recipe.getName() );
             //set the image
             var imgSpace = $('.menuitem-image', contentClone);
             imgSpace.addClass("loading");
-            imgSpace.css("content :\""+menuItem.getName()+"\"");
+//            imgSpace.css("content :\""+recipe.getName()+"\"");
             //set the description
             var descriptionSpace = $('.menuitem-description', contentClone);
-            descriptionSpace.text("This is a description for menu item "+menuItem.getName() );
+            descriptionSpace.text("This is a description for menu item "+recipe.getName() );
             //add the extra configurable options
             var controlsSpace = $('.menuitem-controls', contentClone );
             //bind our add to cart button
             var addToCartButton = $('.add-to-cart', contentClone );
             addToCartButton.unbind('tap').bind('tap', onAddtoCartClick );
-            //test inputs
-            for(var i = 0; i < 3; ++i) {
-                var label = $(document.createElement("label") );
-                label.text('Checkbox '+i);
-                label.append( $(document.createElement('input') ).attr('type','checkbox').attr('value','Checkbox'+i) );
-                controlsSpace.append( label );
+
+            //grab recipe's ingredients and create a checkbox that's already checked for it
+            //Use 3 column grid to display the ingredient's
+            var GRID_COLUMNS = 3;
+            var ingredients = recipe.listIngredients();
+            var gridBlocks = [ "a", "b", "c" ];
+            for(var i in ingredients ) {
+                var blockDivElement = $( document.createElement('div') ); //div object
+                var labelElement = $( document.createElement('label') );
+                var checkBoxElement = $( document.createElement('input') );
+                checkBoxElement.attr('type','checkbox');
+                //Apply the appropriate block type based on the index
+                blockDivElement.addClass("ui-block-"+gridBlocks[i % GRID_COLUMNS]);
+                //ingredient name as label text
+                labelElement.text( ingredients[i].getName() );
+                //make the checkbox checked
+                checkBoxElement.attr('checked',true);
+                //use 'ingredient-name' attribute for future retrieval
+                checkBoxElement.attr('ingredient-name', ingredients[i].getName() );
+                //Now append the elements to each other and to controlspace div
+                controlsSpace.append( blockDivElement.append(labelElement.append( checkBoxElement) ) );
+
             }
+
 //        controlsSpace.trigger("create");
             return contentClone;
-
+//
 
             function onAddtoCartClick(evt) {
                 var clicked = $( evt.target, contentClone );
                 if( !clicked.length ) throw new Error("onAddToCartClick with non existent evt.target!");
-                //add to the food cart
-                FOODCART.addItem( currentVisibleMenu, currentVisibleMenuItem );
+                //Create a new recipe object and add the checked ingredients by using the clicked recipe
+                var oldRecipe = MenuMgr.findMenu( currentVisibleMenu ).findRecipe( currentVisibleRecipe );
+                if( !oldRecipe ) throw new Error("onAddtoCartClick oldRecipe of name "+currentVisibleRecipe+" was not found!");
+                var newRecipe = new Recipe().setName( oldRecipe.getName()).setPrice( oldRecipe.getPrice() );
+                var checkedIngredients = $('input:checked', controlsSpace );
+                checkedIngredients.each( function(index) {
+                    var ingredientName = $(this).attr('ingredient-name'); //we've selected input type, but we're interested parent label
+                    if( !ingredientName.length ) throw new Error("onAddToCart ingredientName is nonexistent!");
+                    var ingredient = oldRecipe.findIngredient( ingredientName );
+                    if( !ingredient ) throw new Error("onAddToCart ingredient("+this.text()+") was not found!");
+                    newRecipe.addIngredient( ingredient );
+                });
+                //Now add the new recipe to the food cart
+                FOODCART.addRecipe( newRecipe );
                 //refresh the food cart
                 refreshFoodCart( MenuPageContext );
             }
@@ -280,30 +335,25 @@
         var listDivider = $('li[data-role="list-divider"]', context);
         //clear all elements below it.
         listDivider.nextAll().remove();
-        //food cart templates
-        var liTemplate = $( document.createElement('li') );
-        var removeControlTemplate = $( document.createElement('span') );
+
         //populate the food list w/ entries from our food cart
-        var entries = FOODCART.getMenus();
-        for( var i in entries ) {
-            var entry = entries[i];
-            var liElement = liTemplate.clone();
-            //find the menu item object to get the price
-            var menuObject = MenuMgr.findMenu( entry.getMenuName() );
-            var menuItemObject = (menuObject != null) ? menuObject.findItem( entry.getMenuItemName() ) : null;
+        var recipes = FOODCART.getRecipes();
+        for( var i in recipes ) {
+            var recipe = recipes[i].getRecipe();
+            var liElement = $( document.createElement('li') );
+
+            //inject the price into span element
             var spanPriceElement = $( document.createElement('span') );
-            if( menuItemObject != null )
-                spanPriceElement.text( menuItemObject.getPrice() );
-            else
-                spanPriceElement.text( 0);
+            spanPriceElement.text( recipe.getPrice() );
+
             //add markup for price element
             spanPriceElement.addClass("ui-li-aside foodcartprice");
             // use the menu item name as the text for li
-            liElement.text( entry.getMenuItemName() );
+            liElement.text( recipe.getName() );
             //create the delete graphic button for it
-            var removeControl = removeControlTemplate.clone();
+            var removeControl = $( document.createElement('span') );
             //add the foodcart-id attribute
-            removeControl.attr('foodcart-id', entry.getId() );
+            removeControl.attr('foodcart-id', recipes[i].getId() );
             removeControl.addClass('removecontrol');
 
             //add tap handler
@@ -323,10 +373,11 @@
             var clickedEntry = $(evt.target, ulElement);
             var clickedId = clickedEntry.attr('foodcart-id');
             // remove from the food cart
-            FOODCART.removeItem(clickedId);
+            FOODCART.removeRecipe(clickedId);
             //remove li parent
             clickedEntry.parent().remove();
             //refresh the food cart visually
+//            ulElement.trigger('create');
             ulElement.listview('refresh');
         }
     }
@@ -340,19 +391,17 @@
         //remove all entries and re-populate them
         foodcartdivider.nextAll().remove();
         //populate the list of our food cart entries
-        var foodcartentries = FOODCART.getMenus();
-        for( var i in foodcartentries ) {
-            var menu =  MenuMgr.findMenu( foodcartentries[i].getMenuName() );
-            var menuitemObj;
-            if( !menu || ! ( menuitemObj = menu.findItem( foodcartentries[i].getMenuItemName() ) ) )
-                continue; //skip non-existant entries
+        var foodcartRecipes = FOODCART.getRecipes();
+        for( var i in foodcartRecipes ) {
+            var recipe = foodcartRecipes[i].getRecipe();
+            if( !recipe ) continue; //skip non-existant entries
 
             var liElement = $(document.createElement('li') );
             var spanElement = $(document.createElement('span') );
 
-            liElement.text( menuitemObj.getName() );
-            spanElement.text( menuitemObj.getPrice() );
-            totalPrice += menuitemObj.getPrice();
+            liElement.text( recipe.getName() );
+            spanElement.text( recipe.getPrice() );
+            totalPrice += recipe.getPrice();
             spanElement.addClass("ui-li-aside foodcartprice");
             liElement.append( spanElement );
             foodcartdivider.after( liElement );
@@ -366,6 +415,8 @@
         spanTotalPrice.text( totalPrice );
         liTotal.text( "Total :");
         liTotal.append( spanTotalPrice );
+        //make it a list divider
+        liTotal.attr('data-role','list-divider');
         //append total element at the bottom of the ul
         foodcartListing.append( liTotal );
         //force jqm to enhance it

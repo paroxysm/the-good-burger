@@ -27,7 +27,7 @@ function Ingredient() {
 }
 
 /* These classes represent items that can be sold/displayed on the menu */
-function MenuItem() {
+function Recipe() {
     this.price = null;
     this.name = null;
     this.ingredients = new Array();
@@ -49,7 +49,7 @@ function MenuItem() {
     this.removeIngredient = function(ingredientname ) {
         var foundIngredient = null; // return the ingredient object or a null if not found
         for(var i  in this.ingredients ) {
-            if( this.ingredients[i].getName() === ingredientname ) {
+            if( this.ingredients[i].getName() == ingredientname ) {
                 foundIngredient = this.ingredients[i];
                 this.ingredients.splice(i, 1);
                 break;
@@ -57,84 +57,84 @@ function MenuItem() {
         }
         return foundIngredient;
     }
+
+    this.findIngredient = function( ingredientname ) {
+        var foundIngredient = null;
+        for( var i in this.ingredients ) {
+            if( this.ingredients[i].getName() == ingredientname ) {
+                foundIngredient = this.ingredients[i];
+                break;
+            }
+        }
+        return foundIngredient;
+    }
+
+    this.getCalories = function() {
+        var totalCalories = 0;
+        for(var i in this.ingredients ) {
+            totalCalories += this.ingredients[i].getCalories();
+        }
+        return totalCalories;
+    }
+
+    this.listIngredients = function() { return this.ingredients; }
 }
 
 function Menu() {
     this.name = null;
-    this.menuItems = new Array();
+//    this.comprehensiveIngredients = new Array();
+    this.recipes = new Array();
 
     this.getName = function() { return this.name; }
     this.setName = function(name) { this.name = name; return this; }
 
     /* Methods for adding or removing menu items */
-    this.addItem = function(menuitem) { this.menuItems.push(menuitem); return this; }
-    this.removeItem = function(menuitemName) {
+    this.addRecipe = function(recipe) { this.recipes.push(recipe); return this; }
+    this.removeRecipe = function(recipename) {
         var foundItem = null;
-        for( var i in this.menuItems ) {
-            if( this.menuItems[i].getName() === menuitemName ) {
-                foundItem = this.menuItems[i];
-                this.menuItems.splice( i, 1);
+        for( var i in this.recipes ) {
+            if( this.recipes[i].getName() === recipename ) {
+                foundItem = this.recipes[i];
+                this.recipes.splice( i, 1);
                 break;
             }
         }
         return foundItem;
     }
 
-    this.getMenus = function() { return this.menuItems; }
+    this.getRecipes = function() { return this.recipes; }
 
-    this.findItem = function(menuitemname) {
+    this.findRecipe = function(menuitemname) {
         var foundItem = null;
-        for( var i in this.menuItems ) {
-            if( this.menuItems[i].getName() === menuitemname ) {
-                foundItem = this.menuItems[i];
+        for( var i in this.recipes ) {
+            if( this.recipes[i].getName() === menuitemname ) {
+                foundItem = this.recipes[i];
                 break;
             }
         }
         return foundItem;
     }
+
+//    this.listIngredients  = function() { return this.ingredients; }
 }
 
-function Order() {
-    this.orderNumber = null
-    this.timeStamp = null;
-    this.menuItems = new Array();
-
-    this.getOrderNumber = function() { return this.orderNumber; }
-    this.getTimestamp = function() { return this.timeStamp; }
-    this.setOrderNumber = function(number) { this.orderNumber = number; return this; }
-    this.setTimestamp = function(time) { this.timeStamp = time; }
-    /* How we add ingredients */
-    this.addMenuItem = function(menuitem) { this.ingredients.push( menuitem ); return this; }
-
-    /* Remove an ingredient given it's name */
-    this.removeMenuItem = function(menuitemname ) {
-        var founditem = null; // return the ingredient object or a null if not found
-        for(var i  in this.menuItems ) {
-            if( this.menuItems[i].getName() === menuitemname ) {
-                founditem = this.menuItems[i];
-                this.menuItems.splice(i, 1);
-                break;
+var ORDER = function() {
+    var recipes = new Array();
+    return {
+        addRecipe : function(recipe) { recipes.push( recipe ); return this; },
+        removeRecipe : function(recipeName) {
+            var foundRecipe = null; // return the ingredient object or a null if not found
+            for(var i  in recipes ) {
+                if( recipes[i].getName() === recipeName ) {
+                    foundRecipe = recipes[i];
+                    recipes.splice(i, 1);
+                    break;
+                }
             }
-        }
-        return founditem;
+            return foundRecipe;
+        },
+        clear : function() { recipes.splice(0, recipes.length); }
     }
-}
-
-function InhouseOrder() {
-    this.tablenumber = null;
-
-    this.getTableNumber = function() { return this.tablenumber; }
-    this.setTableNumber = function(number) { this.tablenumber = number; return this; }
-}
-InhouseOrder.prototype = Order;
-
-function WebOrder() {
-    this.customerName = null;
-    this.phonenumer = null;
-
-    this.getCustomerName = function() { return this.customerName; }
-    this.getPhoneNumber = function() { return this.phonenumer; }
-
-}
+}();
 
 

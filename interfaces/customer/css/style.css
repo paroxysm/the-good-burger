@@ -11,15 +11,14 @@
     float : left;
     box-sizing: border-box;
 }
-.secondary * {
-    box-sizing: border-box;
-}
+
+
 .primary {
     width :60%;
     padding: 5px;
     margin: 0;
     border-style: inset;
-    border-width: 2px;
+    border-width: 5px;
     border-color: black;
     display: inline-block;
     float : left;

@@ -8,69 +8,53 @@
 var FOODCART = function() {
 
     var currentid = 1;
-    var entries = new Array();
+    var recipes = new Array();
 
     function FoodCartEntry() {
-        this.menuName = null;
-        this.menuItemName = null;
+        this.recipe = null;
         this.entryid = currentid;
         currentid++;
 
-        this.getMenuName = function() { return this.menuName; }
-        this.setMenuName = function(name) { this.menuName = name; return this; }
-
-        this.getMenuItemName = function() { return this.menuItemName;  }
-        this.setMenuItemName = function(name) { this.menuItemName = name; return this; }
+        this.getRecipe = function() { return this.recipe; }
+        this.setRecipe = function(recipe) { this.recipe = recipe; return this; }
 
         this.getId = function() { return this.entryid; }
     }
 
     return {
-        addItem : function(menuname, menuitemname ) {
-            var entry = new FoodCartEntry().setMenuName(menuname).setMenuItemName(menuitemname)
-            entries.push(  entry);
-            return entry.getId();
+
+        addRecipe : function (recipe ) {
+            var record = new FoodCartEntry().setRecipe( recipe);
+            recipes.push ( record );
+            return record.getId();
         },
-        removeItem : function(id) {
-            var foundEntry = null;
-            for( var i in entries ) {
-                if( entries[i].getId() == id ) {
-                    foundEntry = entries[i];
-                    entries.splice(i,1);
+        removeRecipe : function(id) {
+            var foundrecipe = null;
+            for( var i in recipes ) {
+                if( recipes[i].getId() == id ) {
+                    foundEntry = recipes[i];
+                    recipes.splice(i,1);
                     break;
                 }
             }
-            return foundEntry;
+            return foundrecipe;
         },
-        getItem : function(id) {
+        getRecipe : function(id) {
             var foundEntry = null;
-            for( var i in entries ) {
-                if( entries[i].getId() === id ) {
-                    foundEntry = entries[i];
+            for( var i in recipes ) {
+                if( recipes[i].getId() === id ) {
+                    foundEntry = recipes[i];
                     break;
                 }
             }
 
         },
-        getItemWithNames : function(menuname, menuitemname ) {
-            var foundEntry = null;
-            for(var i in entries ) {
-                if( entries[i].getMenuName() === menuname  && entries[i].getMenuItemName() === menuitemname ) {
-                    foundEntry = entries[i];
-                    break;
-                }
-            }
-            return foundEntry;
-        },
-        hasItem : function(id) {
-            return this.getItem(id) !== null;
-        },
-        hasItemWithNames : function( menuname, menuitemname) {
-            return this.getItemWithNames(menuname, menuitemname ) != null;
+        hasRecipe : function(id) {
+            return this.getRecipe(id) !== null;
         },
 
-        getMenus : function() { return entries; },
-        clear : function() { entries.splice(0, entries.length); currentid = 1;}
+        getRecipes : function() { return recipes; },
+        clear : function() { recipes.splice(0, recipes.length); currentid = 1;}
     }
 }();
 

@@ -58,22 +58,22 @@ function MenuItem() {
 function Order() {
     this.orderNumber = null
     this.timeStamp = null;
-    this.menuItems = new Array();
+    this.recipes = new Array();
 
     this.getOrderNumber = function() { return this.orderNumber; }
     this.getTimestamp = function() { return this.timeStamp; }
     this.setOrderNumber = function(number) { this.orderNumber = number; return this; }
     this.setTimestamp = function(time) { this.timeStamp = time; }
     /* How we add ingredients */
-    this.addMenuItem = function(menuitem) { this.ingredients.push( menuitem ); return this; }
+    this.addRecipe = function(menuitem) { this.ingredients.push( menuitem ); return this; }
 
     /* Remove an ingredient given it's name */
-    this.removeMenuItem = function(menuitemname ) {
+    this.removeRecipe = function(menuitemname ) {
         var founditem = null; // return the ingredient object or a null if not found
-        for(var i  in this.menuItems ) {
-            if( this.menuItems[i].getName() === menuitemname ) {
-                founditem = this.menuItems[i];
-                this.menuItems.splice(i, 1);
+        for(var i  in this.recipes ) {
+            if( this.recipes[i].getName() === menuitemname ) {
+                founditem = this.recipes[i];
+                this.recipes.splice(i, 1);
                 break;
             }
         }
