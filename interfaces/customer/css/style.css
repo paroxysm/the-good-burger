@@ -75,3 +75,24 @@
 .foodcartprice {
     color : red;
 }
+
+.order-status-wrapper {
+    border-radius: 5px;
+    border-width: 5px;
+    border-style: inset;
+    border-color: black;
+    padding: 5px;
+    margin: 5px;
+    border-spacing : 10px;
+}
+
+#order-status {
+    /*content : url(../res/progressbar.gif);*/
+    background-image : url(../res/yellowloading.gif);
+    background-repeat : repeat-x;
+    width: 99%;
+    /*min-height: 60px;*/
+    display : inline-block;
+    text-align: center;
+    padding: 5px;
+}

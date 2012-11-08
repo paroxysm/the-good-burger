@@ -115,7 +115,6 @@ function Menu() {
         return foundItem;
     }
 
-//    this.listIngredients  = function() { return this.ingredients; }
 }
 
 var ORDER = function() {

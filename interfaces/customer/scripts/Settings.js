@@ -6,9 +6,10 @@
  * To change this template use File | Settings | File Templates.
  */
 
-var Settings = function($) {
+var SETTINGS = function($) {
     var tableNumber = null;
     var phase = null; //Stores the phase that the customer is currently.
+    var controllerUrl = null;
     //perform jqm customization here
     $(document).bind("mobileinit", function() {
         console.log("[DEBUG] configuring jqm!");
@@ -20,6 +21,8 @@ var Settings = function($) {
         getTableNumber : function() { return tableNumber; },
         setTableNumber : function(number) { tableNumber = number; },
         getPhase : function() { return phase; },
-        setPhase : function(newphase) { phase = newphase; }
+        setPhase : function(newphase) { phase = newphase; },
+        getControllerURL  : function() { return controllerUrl; },
+        setControllerURL : function(url) { controllerUrl = url; return this; }
     };
 }(jQuery);

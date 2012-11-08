@@ -2,13 +2,24 @@
 <html>
 <head>
     <title>The Good Burger - Customer Interface</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=no"/>
+
     <script src="scripts/jquery.js"></script>
+
+    <script src="scripts/DataTypes.js"></script>
+    <script src="scripts/pageventcallbackregistrar.js"></script>
+    <script src="scripts/MenuManager.js"></script>
+    <script src="scripts/menupagebrowser.js"></script>
+    <script src="scripts/foodcart.js"></script>
+    <script src="scripts/postorder.js"></script>
+
+
     <script src="scripts/jqm.js"></script>
     <script src="scripts/jqmsubpage.js"></script>
-    <script src="scripts/qunit.js"></script>
+
     <link rel="stylesheet" href="css/jqm.css"/>
     <link rel="stylesheet" href="css/jqmiconpack.css"/>
+    <link rel="stylesheet" href="css/style.css"/>
+    <meta name="viewport" content="width=device-width, height=device-height, minimum-scale=1, maximum-scale=1, user-scalable=no"/>
 </head>
 <body>
 <div data-role="page" id="post-order" >
@@ -16,7 +27,17 @@
         <h3>Payment Screen</h3>
     </div>
     <div data-role="content">
-        <ul data-role="listview" data-inset="true">
+        <div class="ui-grid-solo order-status-wrapper">
+            <div class="ui-block-a">
+                <h4 class="ui-title">Order Status :</h4>
+               <div id="order-status-graphic">
+                   <span id="order-status">Placed</span>
+               </div>
+            </div>
+        </div>
+
+
+        <ul data-role="listview" data-inset="true" id="confirmed-cart">
             <li>Item 1</li>
             <li>Item 2</li>
             <li>Item 3</li>
@@ -24,24 +45,13 @@
             <li>Item 5</li>
         </ul>
         </br>
-        <div class="ui-grid-b">
-            <div class="ui-block-a">
-                <label><input type="checkbox" />Checkbox 1</label>
-            </div>
-            <div class="ui-block-b">
-                <label><input type="checkbox" />Checkbox 2</label>
-            </div>
-            <div class="ui-block-c" >
-                <label><input type="checkbox" />Checkbox 3</label>
-            </div>
-        </div>
         <a href="#" data-role="button" data-theme="b">Pay Order</a>
     </div>
     <footer data-role="footer" data-theme="c">
         <div data-role="navbar" data-iconpos="top">
             <ul>
                 <li><a href="#">Request Refill</a></li>
-                <li><a href="#">Add Extra Items</a></li>
+                <!--<li><a href="#">Add Extra Items</a></li>-->
                 <li><a href="#">Request Assistance</a></li>
             </ul>
         </div>
