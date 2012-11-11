@@ -11,6 +11,7 @@
 
     /* Listen for pagecreate to initialize our dynamic menus */
     PECR.registerCallback("menu", "pagecreate", initialize);
+    PECR.registerCallback("menu", "pagebeforeshow", function() { showMenuDOM(currentVisibleMenu, MenuPageContext); });
 
     var currentVisibleMenu = null;
     var currentVisibleRecipe = null;
@@ -32,8 +33,7 @@
             FOODCART.clear();
             refreshFoodCart( MenuPageContext );
             console.log("[DEBUG] clearing food cart");
-        })
-
+        });
     }
 
     /* This is responsible for creating the menu markup at the top of the toolbar */
@@ -381,7 +381,24 @@
             ulElement.listview('refresh');
         }
     }
-
+    /*
+     */
+    PECR.registerCallback("confirm-order", "pageinit", function(evt, obj) {
+        //Add functionality for '#post-order' button
+        var postOrderButton = $("#post-order", evt.target );
+        if( !postOrderButton.length ) throw new Error("#post-order button is non-existent, orders can't be posted!");
+        postOrderButton.unbind('tap').bind('tap', function() {
+            var order = new Order();
+            var foodcartRecipes = FOODCART.getRecipes();
+            for( var i in foodcartRecipes ) {
+                var recipe = foodcartRecipes[i].getRecipe();
+                order.setTotal( order.getTotal() + recipe.getPrice() );
+                order.addRecipe( recipe );
+            }
+            //set the order instance
+            OrderManager.setOrder( order );
+        });
+    });
 
     /* Used to list the food cart entries when on the confirm order screen */
     PECR.registerCallback("confirm-order", "pagebeforeshow", function(evt, obj) {
@@ -411,12 +428,9 @@
         var spanTotalPrice = $(document.createElement('span') );
         spanTotalPrice.addClass("ui-li-aside foodcartprice");
         //2 decimal places max
-        totalPrice.toFixed(2);
-        spanTotalPrice.text( totalPrice );
+        spanTotalPrice.text( totalPrice.toFixed(2) );
         liTotal.text( "Total :");
         liTotal.append( spanTotalPrice );
-        //make it a list divider
-        liTotal.attr('data-role','list-divider');
         //append total element at the bottom of the ul
         foodcartListing.append( liTotal );
         //force jqm to enhance it

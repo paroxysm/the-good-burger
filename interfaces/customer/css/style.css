@@ -73,21 +73,24 @@
 }
 
 .foodcartprice {
+    font-style : italic;
+}
+.foodcartpricetotal {
+    font-style :normal;
     color : red;
 }
 
 .order-status-wrapper {
     border-radius: 5px;
     border-width: 5px;
-    border-style: inset;
+    border-style: solid;
     border-color: black;
     padding: 5px;
-    margin: 5px;
+    /*margin: 5px;*/
     border-spacing : 10px;
 }
 
 #order-status {
-    /*content : url(../res/progressbar.gif);*/
     background-image : url(../res/yellowloading.gif);
     background-repeat : repeat-x;
     width: 99%;
@@ -95,4 +98,60 @@
     display : inline-block;
     text-align: center;
     padding: 5px;
+}
+.game-red-burger {
+    background-image: url("../res/redburger.JPG");
+    background-repeat: no-repeat;
+    background-position: center;
+}
+.game-green-burger {
+    background-image: url("../res/greenburger.JPG");
+    background-repeat: no-repeat;
+    background-position: center;
+}
+.game-blue-burger {
+    background-image: url("../res/blueburger.JPG");
+    background-repeat: no-repeat;
+    background-position: center;
+}
+.game-orange-burger {
+    background-image: url("../res/orangeburger.JPG");
+    background-repeat: no-repeat;
+    background-position: center;
+}
+.game-purple-burger {
+    background-image: url("../res/purpleburger.JPG");
+    background-repeat: no-repeat;
+    background-position: center;
+}
+.payment-status * {
+    /*float : left;*/
+}
+.payment-approved {
+    background-image : url("../res/approved.gif");
+    background-size: 20px 20px;
+    background-repeat: no-repeat;
+    background-position: center;
+    min-height: 20px;
+    min-width: 20px;
+    display: inline-block;
+
+}
+.payment-failed {
+    background-image : url("../res/approved.gif");
+    background-size: 20px 20px;
+    background-repeat: no-repeat;
+    background-position: center;
+    min-height: 20px;
+    min-width: 20px;
+    display: inline-block;
+}
+.payment-pending {
+    background-image : url("../res/pending.gif");
+    background-size: 20px 20px;
+    background-repeat: no-repeat;
+    background-position: center;
+    min-height: 20px;
+    min-width: 20px;
+    display: inline-block;
 }

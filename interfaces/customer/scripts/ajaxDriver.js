@@ -12,6 +12,7 @@ var IS_MOCKING = true;
     It revolves around the convention of any json data follow the form { request_type : <type>, payload : <datatosend> }
     when posting/getting to the server. It relies on jQuery's ajax api
  */
+console.log("loading ajaxDriver.js");
 var ajaxDriver = function($) {
     if( !SETTINGS.getControllerURL() )
         console.warn("ajaxDriver, controller Url is not valid!");
@@ -69,7 +70,8 @@ var ajaxDriver = function($) {
         for( var i in registeredMockCallbacks ) {
             if( registeredMockCallbacks[i].type == requestType ) {
                 console.log("mockAjaxCall dispatched mock for request type : %s", requestType );
-                registeredMockCallbacks[i].cb.call(null, payload, successCallback );
+                var returnedData = registeredMockCallbacks[i].cb.call(null, payload );
+                successCallback.call(null, returnedData);
             }
         }
     }
@@ -95,13 +97,13 @@ var ajaxDriver = function($) {
             registeredMockCallbacks.push( new MockEntry(requestType, mockCallback) );
         },
         clearMocks : function() { registeredMockCallbacks.splice(0, registeredMockCallbacks.length); }
-    }
+    };
 }(jQuery );
 
 /* Create some mock callbacks */
 
 //mock for request_menus
-ajaxDriver.registerMockCallbackForType( ajaxDriver.REQUESTS.REQUEST_MENUS, function(payload, success ) {
+ajaxDriver.registerMockCallbackForType( ajaxDriver.REQUESTS.REQUEST_MENUS, function(payload ) {
     var ingredients1 = [ new Ingredient().setName("ingredient 1"),
         new Ingredient().setName("ingredient 2"),
         new Ingredient().setName("ingredient 3") ,
@@ -150,7 +152,7 @@ ajaxDriver.registerMockCallbackForType( ajaxDriver.REQUESTS.REQUEST_MENUS, funct
         sampleMenu4.addRecipe( items2[i] );
     }
     //pass our fake menu objects to the callback
-    success.call(null, sampleMenu,sampleMenu2,sampleMenu3,sampleMenu4,sampleMenu5 );
+    return [sampleMenu,sampleMenu2,sampleMenu3,sampleMenu4,sampleMenu5];
 });
 
 ajaxDriver.registerMockCallbackForType( ajaxDriver.REQUESTS.REQUEST_MENU, function(payload, success) {

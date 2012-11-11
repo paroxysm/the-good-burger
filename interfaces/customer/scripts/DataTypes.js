@@ -117,23 +117,35 @@ function Menu() {
 
 }
 
-var ORDER = function() {
-    var recipes = new Array();
-    return {
-        addRecipe : function(recipe) { recipes.push( recipe ); return this; },
-        removeRecipe : function(recipeName) {
-            var foundRecipe = null; // return the ingredient object or a null if not found
-            for(var i  in recipes ) {
-                if( recipes[i].getName() === recipeName ) {
-                    foundRecipe = recipes[i];
-                    recipes.splice(i, 1);
-                    break;
-                }
+function Order() {
+    this.id = null;
+    this.recipes = new Array();
+    this.total = 0;
+    this.coupon = true;
+
+    this.getID = function() { return this.id; }
+    this.setID = function(id) { this.id = id; return this; }
+    this.addRecipe = function(recipe) { this.recipes.push( recipe ); return this; }
+    this.removeRecipe =  function(recipeName) {
+        var foundRecipe = null; // return the ingredient object or a null if not found
+        for(var i  in recipes ) {
+            if( this.recipes[i].getName() === recipeName ) {
+                foundRecipe = this.recipes[i];
+                this.recipes.splice(i, 1);
+                break;
             }
-            return foundRecipe;
-        },
-        clear : function() { recipes.splice(0, recipes.length); }
+        }
+        return foundRecipe;
     }
-}();
+    this.clear = function() { this.recipes.splice(0, this.recipes.length); }
+    this.addCoupon = function() { this.coupon = true }
+    this.removeCoupon = function() { this.coupon = false; }
+    this.hasCoupon = function() { return this.coupon; }
+    this.getTotal = function() { return this.total; }
+    this.setTotal = function(total) { this.total = total; }
+
+    this.getRecipes = function() { return this.recipes; }
+
+};
 
 

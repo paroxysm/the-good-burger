@@ -14,25 +14,23 @@ var MenuMgr = function() {
     var lastFetchTime = null;
 
     function internalfetchmenus() {
-
+        ajaxDriver.call( ajaxDriver.REQUESTS.REQUEST_MENUS, null, onMenusReceived);
     }
 
-    function internalfetchmenu(tablenumber, menuType ) {
-
+    function internalfetchmenu( menuType ) {
+        ajaxDriver.call( ajaxDriver.REQUESTS.REQUEST_MENU, { tablenumber : SETTINGS.getTableNumber(), menutype : menuType }, onMenuReceived );
     }
     /* callback for when we have our menus */
     function onMenusReceived(data) {
-
+        console.log("Menus have been received")
+        for(var i in data) {
+            menus.push( data[i] );
+            console.log("onMenusReceived, added menu %s", data[i].getName() );
+        }
     }
     /* callback for when we have our menu */
     function onMenuReceived(data ) {
 
-    }
-    /* generic error handler for our ajax calls */
-    function onError(xhr, textStatus, exceptionObj ) {
-        console.log("MenuMgr::onError with textStatus %s",textStatus);
-        if( exceptionObj != null )
-            throw exceptionObj;
     }
 
     return {
@@ -54,3 +52,5 @@ var MenuMgr = function() {
         fetchMenu : function() { internalfetchmenu.apply(this, arguments); }
     }
 }();
+
+MenuMgr.fetchMenus();

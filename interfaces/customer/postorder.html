@@ -4,14 +4,17 @@
     <title>The Good Burger - Customer Interface</title>
 
     <script src="scripts/jquery.js"></script>
+    <script src="scripts/knockout.js"></script>
 
     <script src="scripts/DataTypes.js"></script>
+    <script src="scripts/Settings.js"></script>
+    <script src="scripts/ajaxDriver.js"></script>
     <script src="scripts/pageventcallbackregistrar.js"></script>
     <script src="scripts/MenuManager.js"></script>
+    <script src="scripts/OrderManager.js"></script>
     <script src="scripts/menupagebrowser.js"></script>
     <script src="scripts/foodcart.js"></script>
     <script src="scripts/postorder.js"></script>
-
 
     <script src="scripts/jqm.js"></script>
     <script src="scripts/jqmsubpage.js"></script>
@@ -22,7 +25,8 @@
     <meta name="viewport" content="width=device-width, height=device-height, minimum-scale=1, maximum-scale=1, user-scalable=no"/>
 </head>
 <body>
-<div data-role="page" id="post-order" >
+<div data-role="page" id="post-order">
+
     <div data-role="header" data-theme="c">
         <h3>Payment Screen</h3>
     </div>
@@ -30,38 +34,115 @@
         <div class="ui-grid-solo order-status-wrapper">
             <div class="ui-block-a">
                 <h4 class="ui-title">Order Status :</h4>
-               <div id="order-status-graphic">
-                   <span id="order-status">Placed</span>
-               </div>
+                <div id="order-status-graphic">
+                    <span id="order-status">Placed</span>
+                </div>
             </div>
         </div>
 
 
         <ul data-role="listview" data-inset="true" id="confirmed-cart">
-            <li>Item 1</li>
-            <li>Item 2</li>
-            <li>Item 3</li>
-            <li>Item 4</li>
-            <li>Item 5</li>
+            <!-- ko foreach : getRecipes() -->
+            <li>
+                <span data-bind="text : $data.getName()"></span>
+                <span class="ui-li-aside foodcartprice" data-bind="text : $data.getPrice()"></span>
+            </li>
+            <!-- /ko -->
+            <li>
+                Total
+                <span  class="ui-li-aside foodcartprice foodcartpricetotal" data-bind="text : getTotal().toFixed(2)"></span>
+            </li>
         </ul>
+
         </br>
-        <a href="#" data-role="button" data-theme="b">Pay Order</a>
+        <a href="#payment-screen" data-role="button" date-rel="dialog" data-theme="b">Pay Order</a>
     </div>
     <footer data-role="footer" data-theme="c">
         <div data-role="navbar" data-iconpos="top">
             <ul>
-                <li><a href="#">Request Refill</a></li>
+                <li><a href="#refill-screen">Request Refill</a></li>
                 <!--<li><a href="#">Add Extra Items</a></li>-->
-                <li><a href="#">Request Assistance</a></li>
+                <li><a href="#" data-bind="event: { tap : requestWaiter }" id="request-waiter-button">Request Assistance</a></li>
             </ul>
         </div>
     </footer>
 
-    <div data-role="subpage" id="payment-screen">
-        <header data-role="header">
+    <div data-role="subpage-dialog" id="payment-screen" data-theme="c" data-overlay-theme="a">
+        <header data-role="header" data-theme="c">
             <h4>Pay your Bill</h4>
         </header>
+        <div data-role="content" data-theme="c">
+            <ul data-role="listview" data-inset="true">
+                <li data-role="list-divider">Placed Payments: </li>
+                <!-- ko foreach : myPayments -->
+                <li>
+                    <span data-bind="text : type"></span>
+                    <span data-bind="text : '('+amount+')'" class="ui-li-aside"></span>
+                </li>
+                <!-- /ko -->
+                <li>
+                    <span data-bind="text : totalAmountLeft() > 0 ? 'OWED' : 'PAID!'"></span>
+                    <span data-bind="text : totalAmountLeft() > 0 ? totalAmountLeft : ''" class="ui-li-aside foodcartpricetotal"></span>
+                </li>
+            </ul>
+            <div class="ui-grid-a">
+                <div class="ui-block-a" id="payment-types">
+                    <label data-bind="visible : totalAmountLeft() > 0.0">Amount :<input type="number" data-bind="value : guardedPaymentAmount "/></label>
+                    </br>
+                    <select data-bind="options : allowedTypes, value : selectedType, optionsCaption : 'Select type:', disable : totalAmountLeft() == 0">
+                    </select>
+                </div>
+                <div class="ui-block-b" id="payment-type-fields">
+                    <div id="credit-card-fields" data-bind="visible : isCardSelected, with : creditCardViewModel">
+                        <label>Card Number :<input type="text" required data-bind="value : cardNumber"/></label>
+                        <label>CVV Number :<input type="text" required data-bind="value : cvvNumber"/></label>
+                        <label>Expiration Date :<input type="date" required data-bind="value : expirationDate"/></label>
+                    </div>
+                    <div id="eCheck-fields" data-bind="visible : isECheckSelected, with : eCheckViewModel">
+                        <label>Bank Name :<input type="text" required data-bind="value : bankName"/></label>
+                        <label>Bank Routing Number :<input type="text" required data-bind="value : bankRouting"/></label>
+                        <label>Bank Account Number :<input type="text" required data-bind="value : bankAccount"/></label>
+                    </div>
+                </div>
+            </div>
+            </br>
+            <a href="#" data-role="button" data-theme="c" data-icon="plus" data-bind="visible : totalAmountLeft() > 0 && selectedType() != undefined, click : addPayment">Add Payment</a>
+            <a href="#" data-role="button" data-theme="b" data-bind="visible : totalAmountLeft() == 0 && submitted() == false, event: { tap : submitPayment }" id="submit-payment">Submit Payment</a>
+            <h4 data-bind="visible : submitted() == true" class="payment-status">Payment status :
+                <span data-bind="text : paymentStatus"></span>
+                <div data-bind="css: paymentMarkupClass"></div>
+            </h4>
+
+        </div>
+    </div>
+
+    <div data-role="subpage-dialog" id="refill-screen">
+        <header data-role="header" data-theme="c">
+            <h1>Request Refills</h1>
+        </header>
         <div data-role="content">
+            <h4>Refill Status :
+                <span class="refill-status">Not Placed</span>
+                <div class="refill-graphic"></div>
+            </h4>
+            <ul data-role="listview" data-inset="true">
+                <li data-role="list-divider">New Refills</li>
+            </ul>
+            <fieldset data-role="controlgroup">
+                <label>SomeThing <input type="checkbox"/></label>
+                <label>SomeThing <input type="checkbox"/></label>
+                <label>SomeThing <input type="checkbox"/></label>
+            </fieldset>
+            <a href="#" data-role="button" data-rel="back" data-theme="b">Place Request</a>
+        </div>
+    </div>
+
+    <div data-role="subpage-dialog" id="chance-game">
+        <header data-role="header">
+            <h1>Win a COUPON</h1>
+        </header>
+        <div data-role="content">
+            <p>Play for 1 in 5 chance to win a free dessert coupon! By picking the winning item!</p>
 
         </div>
     </div>

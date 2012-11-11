@@ -15,6 +15,7 @@ var SETTINGS = function($) {
         console.log("[DEBUG] configuring jqm!");
         //allow ajax calls to fetch outside our domain
         $.mobile.allowCrossDomainPages = true;
+        $.mobile.ignoreContentEnabled=true;
     })
 
     return {

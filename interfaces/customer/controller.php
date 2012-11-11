@@ -7,5 +7,4 @@
  * To change this template use File | Settings | File Templates.
  */
 echo "Printing POST";
-$first = $_POST[type];
-echo "First is :$first";
+echo "First is : {$_POST['request_type']}";
