@@ -24,16 +24,14 @@
     <link rel="stylesheet" href="css/jqmiconpack.css"/>
     <link rel="stylesheet" href="css/style.css"/>
     <meta name="viewport" content="width=device-width, height=device-height, minimum-scale=1, maximum-scale=1, user-scalable=no"/>
+    <meta http-equiv="pragma" content="no-cache"/>
 </head>
 <body>
-<div data-role="page" id="menu">
+<div data-role="page" id="menu" data-dom-cache="true">
     <header data-role="header" data-theme="c">
         <h4>Our Menus</h4>
         <div data-role="navbar">
             <ul id="menu-nav-list" >
-                <li><a href="#" >Burgers</a></li>
-                <li><a href="#">Drinks</a></li>
-                <li><a href="#">Desserts</a></li>
             </ul>
         </div>
     </header>
@@ -63,7 +61,7 @@
             </ul>
             </br>
             <div class="ui-grid-solo">
-                <a href="postorder.html" id="post-order" data-role="button" data-theme="b">Confirm</a>
+                <a href="#chance-game" id="post-order" data-role="button" data-theme="b">Confirm</a>
             </div>
         </div>
     </div>
@@ -110,6 +108,25 @@
         <h4 class="ui-title">Are you sure you want to clear your cart?</h4>
         <a href="#" data-rel="back" data-theme="b" data-role="button" data-inline="true">No, I don't</a>
         <a href="#" data-rel="back" id="clear-cart" data-role="button" data-inline="true">Yes, Please</a>
+    </div>
+
+
+    <div data-role="subpage" id="chance-game">
+        <header data-role="header" data-theme="c">
+            <h1>Win a COUPON</h1>
+        </header>
+        <div data-role="content">
+            <h4>Play for 1 in 5 chance to win a free dessert coupon! By picking the winning item!</h4>
+            <h4 data-bind="visible : played()">You <span data-bind="text: gameOutcome"></span></h4>
+            <div data-bind="visible : played(), css : outcomeMarkup"></div>
+            <ul data-role="listview" data-bind=" visible: !played(), foreach : burgers" data-mini="true">
+                <li><a href="#" data-bind="event: { tap : $parent.playGame }">
+                    <img data-bind="css : buttonClass"/>
+                    <h4 data-bind="text : buttonTxt"></h4>
+                </a></li>
+            </ul>
+            <a href="postorder.html" data-role="button" data-theme="b">Proceed</a>
+        </div>
     </div>
 </div>
 </body>

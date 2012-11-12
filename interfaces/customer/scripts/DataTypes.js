@@ -9,6 +9,7 @@
 function Ingredient( asJSON ) {
 
     this.count = null;
+    this.id = null;
     this.calories = null;
     this.unitSize = null;
     this.name = null
@@ -19,6 +20,7 @@ function Ingredient( asJSON ) {
         this.calories = asJSON.calories;
         this.unitSize = asJSON.unitSize;
         this.name = asJSON.name;
+        this.id = asJSON.id;
 //        this.expiringDate = asJSON.expiringDate
     }
 
@@ -33,6 +35,9 @@ function Ingredient( asJSON ) {
     this.setUnitSize = function(unitsize) { this.unitSize = unitsize; return this; }
     this.setName = function(name) { this.name = name; return this; }
     this.setExpiringDate = function(date) { this.expiringDate = date; return this; }
+
+    this.getID = function() { return this.id; }
+    this.setID = function(id) { this.id = id; return this; }
 }
 
 /* These classes represent items that can be sold/displayed on the menu */
@@ -70,7 +75,9 @@ function Recipe( asJSON ) {
     this.setDescription = function(descr ) { this.description = descr; return this; }
 
     /* How we add ingredients */
-    this.addIngredient = function(ingredient) { this.ingredients.push( ingredient ); return this; }
+    this.addIngredient = function(ingredient) {
+        this.ingredients.push( ingredient ); return this;
+    }
 
     /* Remove an ingredient given it's name */
     this.removeIngredient = function(ingredientname ) {
@@ -163,7 +170,7 @@ function Order() {
     this.id = null;
     this.recipes = new Array();
     this.total = 0;
-    this.coupon = true;
+    this.coupon = false;
 
     this.getID = function() { return this.id; }
     this.setID = function(id) { this.id = id; return this; }

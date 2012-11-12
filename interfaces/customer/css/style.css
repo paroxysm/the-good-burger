@@ -89,46 +89,80 @@
     /*margin: 5px;*/
     border-spacing : 10px;
 }
-
-#order-status {
+#order-status-graphic {
     background-image : url(../res/yellowloading.gif);
     background-repeat : repeat-x;
     width: 99%;
+}
+#order-status {
     /*min-height: 60px;*/
     display : inline-block;
     text-align: center;
+    text-shadow: inset;
+    color : white;
+    font-size: 16pt;
     padding: 5px;
+    position : relative;
+    left : 50%;
 }
 .game-red-burger {
     background-image: url("../res/redburger.JPG");
     background-repeat: no-repeat;
     background-position: center;
+    min-width: 80px;
+    min-height: 80px;
+    background-size: 80px 80px;
 }
 .game-green-burger {
     background-image: url("../res/greenburger.JPG");
     background-repeat: no-repeat;
     background-position: center;
+    min-width: 80px;
+    min-height: 80px;
+    background-size: 80px 80px;
 }
 .game-blue-burger {
     background-image: url("../res/blueburger.JPG");
     background-repeat: no-repeat;
     background-position: center;
+    background-size: 80px 80px;
+    min-width: 80px;
+    min-height: 80px;
 }
 .game-orange-burger {
     background-image: url("../res/orangeburger.JPG");
     background-repeat: no-repeat;
     background-position: center;
+    min-width: 80px;
+    min-height: 80px;
+    background-size: 80px 80px;
 }
 .game-purple-burger {
     background-image: url("../res/purpleburger.JPG");
     background-repeat: no-repeat;
     background-position: center;
+    min-width: 80px;
+    min-height: 80px;
+    background-size: 80px 80px;
 }
-.payment-status * {
-    /*float : left;*/
+.game-win {
+    background-image : url("../res/victory.png");
+    background-position: center;
+    background-repeat: no-repeat;
+    min-height: 128px;
+    min-width: 128px;
 }
-.payment-approved {
-    background-image : url("../res/approved.gif");
+.game-lose {
+    background-image : url("../res/defeat.png");
+    background-position: center;
+    background-repeat: no-repeat;
+    min-height: 128px;
+    min-width: 128px;
+}
+
+
+.payment-paid {
+    background-image : url("../res/approved.png");
     background-size: 20px 20px;
     background-repeat: no-repeat;
     background-position: center;
@@ -138,7 +172,7 @@
 
 }
 .payment-failed {
-    background-image : url("../res/approved.gif");
+    background-image : url("../res/delete.gif");
     background-size: 20px 20px;
     background-repeat: no-repeat;
     background-position: center;
@@ -154,4 +188,46 @@
     min-height: 20px;
     min-width: 20px;
     display: inline-block;
+}
+.approved {
+    background-image : url("../res/approved.png");
+    background-size: 20px 20px;
+    background-repeat: no-repeat;
+    background-position: center;
+    min-height: 20px;
+    min-width: 20px;
+    display: inline-block;
+}
+.pending {
+    background-image : url("../res/pending.gif");
+    background-size: 20px 20px;
+    background-repeat: no-repeat;
+    background-position: center;
+    min-height: 20px;
+    min-width: 20px;
+    display: inline-block;
+}
+
+.failed {
+    background-image : url("../res/delete.png");
+    background-size: 20px 20px;
+    background-repeat: no-repeat;
+    background-position: center;
+    min-height: 20px;
+    min-width: 20px;
+    display: inline-block;
+}
+
+.waiter-request-pending {
+    background-image : url("../res/pending.gif");
+    background-size: 20px 20px;
+    background-repeat: no-repeat;
+    background-position: left;
+}
+
+.waiter-request-serviced {
+    background-image : url("../res/approved.png");
+    background-size: 20px 20px;
+    background-repeat: no-repeat;
+    background-position: left;
 }

@@ -410,40 +410,36 @@
             }
             //set the order instance
             OrderManager.setOrder( order );
-            //make our ajax call
+
             //first create our ajax payload
             var orderRecipes = {
+                tablenumber : SETTINGS.getTableNumber(),
                 recipes : new Array()
             };
             for( var i in foodcartRecipes ) {
                 var recipe = foodcartRecipes[i].getRecipe();
                 orderRecipes.recipes.push( recipe );
             }
+
+            var retryEvent;
+            //This seems to be required.
             orderRecipes.recipes = JSON.parse( JSON.stringify(orderRecipes.recipes) );
             function successFunction(data) {
                 console.log("PLACE_ORDER has been served with order id %d", data.orderid);
                 order.setID( data.orderid );
-                var pollEvent = window.setInterval(periodicOrderStatusPoll, 5000);
-
-                //Register period poll for order status
-                function periodicOrderStatusPoll() {
-                    //payload
-                    var orderidPayload = {
-                        orderid : order.getID()
-                    };
-                    //
-                    ajaxDriver.call(ajaxDriver.REQUESTS.REQUEST_ORDER_STATUS, orderidPayload, function(data) {
-                        console.log("REQUEST_ORDER_STATUS is %s",data.status);
-                        if( data.status == 'paid') {
-                            window.clearInterval(pollEvent );
-                            console.log("REQUEST_ORDER_STATUS poll event cleared!");
-                        }
-                    });
-                }
+                //clear the retry event if it exists
+                if( retryEvent )
+                    window.clearInterval( retryEvent );
             }
-            function errorRetry() {
+            function errorRetry()
+            {
                 console.log("Error for PLACE_ORDER, trying again!");
-                ajaxDriver.call(ajaxDriver.REQUESTS.PLACE_ORDER, orderRecipes, successFunction, errorRetry );
+                if( !retryEvent ) {
+                    retryEvent = window.setInterval( placeOrderAgain, 2000 );
+                }
+                function placeOrderAgain() {
+                    ajaxDriver.call(ajaxDriver.REQUESTS.PLACE_ORDER, orderRecipes, successFunction, errorRetry );
+                }
             }
             ajaxDriver.call(ajaxDriver.REQUESTS.PLACE_ORDER, orderRecipes, successFunction, errorRetry );
         });
@@ -485,4 +481,51 @@
         //force jqm to enhance it
         foodcartListing.listview('refresh');
     });
+
+    //functionality for the game chance
+    PECR.registerCallback("chance-game", "pagecreate", function(event) {
+        GameScreen = $(event.target);
+        if( !GameScreen.length ) throw new Error("GameScreen #chance-game is non existent!");
+        var gVM = new GameViewModel();
+        ko.applyBindings( gVM, GameScreen[0] );
+    });
+
+    PECR.registerCallback("chance-game", "pagehide", function(event) {
+        //they've played the game, send them to post order.
+        $.mobile.changePage("postorder.html");
+    });
+    /* Game View Model */
+    function GameViewModel() {
+        var self = this;
+        self.burgers = [
+            {buttonTxt: "Burger 1", buttonClass : 'game-red-burger'},
+            {buttonTxt: "Burger 2", buttonClass : 'game-blue-burger'},
+            {buttonTxt: "Burger 3", buttonClass : 'game-green-burger'},
+            {buttonTxt: "Burger 4", buttonClass : 'game-orange-burger'},
+            {buttonTxt: "Burger 5", buttonClass : 'game-purple-burger'}
+        ];
+
+        self.playGame = function() {
+            if( Math.floor( Math.random()*5 +1) == 5 )
+                self.gameOutcome("WIN!");
+            else
+                self.gameOutcome("LOSE!");
+            self.played(true);
+            //Add the coupon if they won
+            if( self.gameOutcome() == 'WIN!') {
+                OrderManager.getOrder().addCoupon();
+            }
+        }
+        self.gameOutcome = ko.observable();
+        self.played = ko.observable(false);
+        self.outcomeMarkup = ko.computed( function() {
+            console.log("Arguments is :"+arguments);
+            var outCome = self.gameOutcome();
+            if( outCome == 'WIN!')
+                return 'game-win';
+            else if( outCome == 'LOSE!')
+                return 'game-lose';
+        });
+    }
+
 })(jQuery);

@@ -23,6 +23,7 @@
     <link rel="stylesheet" href="css/jqmiconpack.css"/>
     <link rel="stylesheet" href="css/style.css"/>
     <meta name="viewport" content="width=device-width, height=device-height, minimum-scale=1, maximum-scale=1, user-scalable=no"/>
+    <meta http-equiv="pragma" content="no-cache"/>
 </head>
 <body>
 <div data-role="page" id="post-order">
@@ -31,12 +32,12 @@
         <h3>Payment Screen</h3>
     </div>
     <div data-role="content">
-        <div class="ui-grid-solo order-status-wrapper">
+        <div class="ui-grid-solo" id="order-status-wrapper">
             <div class="ui-block-a">
-                <h4 class="ui-title">Order Status :</h4>
-                <div id="order-status-graphic">
-                    <span id="order-status">Placed</span>
-                </div>
+                <h4 class="ui-title">Order Status :
+                    <span data-bind="text : orderStatus"></span>
+                    <div data-bind="css : orderStatusMarkup"></div>
+                </h4>
             </div>
         </div>
 
@@ -62,7 +63,7 @@
             <ul>
                 <li><a href="#refill-screen">Request Refill</a></li>
                 <!--<li><a href="#">Add Extra Items</a></li>-->
-                <li><a href="#" data-bind="event: { tap : requestWaiter }" id="request-waiter-button">Request Assistance</a></li>
+                <li><a href="#" data-bind="event: { tap : requestWaiter }, css : requestStatusMarkupClass" id="request-waiter-button">Request Assistance</a></li>
             </ul>
         </div>
     </footer>
@@ -91,7 +92,10 @@
                 <div class="ui-block-a" id="payment-types">
                     <label data-bind="visible : totalAmountLeft() > 0.0">Amount :<input type="number" data-bind="value : guardedPaymentAmount "/></label>
                     </br>
-                    <select data-bind="options : allowedTypes, value : selectedType, optionsCaption : 'Select type:', disable : totalAmountLeft() == 0">
+                    <select data-bind="options : allowedTypes, value : selectedType, optionsCaption : 'Select payment:', disable : totalAmountLeft() <= 0">
+                    </select>
+                    <select data-bind="options : tipChart, optionsCaption : 'Tip Chart', value :tipAmount, optionsText : computeTipChartText, disable : totalAmountLeft() <= 0">
+
                     </select>
                 </div>
                 <div class="ui-block-b" id="payment-type-fields">
@@ -109,7 +113,7 @@
             </div>
             </br>
             <a href="#" data-role="button" data-theme="c" data-icon="plus" data-bind="visible : totalAmountLeft() > 0 && selectedType() != undefined, click : addPayment">Add Payment</a>
-            <a href="#" data-role="button" data-theme="b" data-bind="visible : totalAmountLeft() == 0 && submitted() == false, event: { tap : submitPayment }" id="submit-payment">Submit Payment</a>
+            <a href="#" data-role="button" data-theme="b" data-bind="visible : totalAmountLeft() <= 0 && submitted() == false, event: { tap : submitPayment }" id="submit-payment">Submit Payment</a>
             <h4 data-bind="visible : submitted() == true" class="payment-status">Payment status :
                 <span data-bind="text : paymentStatus"></span>
                 <div data-bind="css: paymentMarkupClass"></div>
@@ -124,30 +128,23 @@
             <h1>Request Refills</h1>
         </header>
         <div data-role="content">
-            <h4>Refill Status :
-                <span class="refill-status" data-bind="text : refillStatus"></span>
-                <div class="refill-graphic"></div>
-            </h4>
-            <ul data-role="listview" data-inset="true">
-                <li data-role="list-divider">New Refills</li>
-            </ul>
-            <fieldset data-role="controlgroup" data-bind="foreach : refillables">
-                <label>
-                    <span data-bind="text : getName()"></span>
-                    <input type="checkbox" data-bind="attr: {'recipe-id': id }"/>
-                </label>
-            </fieldset>
-            <a href="#" data-role="button" data-rel="back" data-theme="b" data-bind="event: { tap : submitRequest }">Place Request</a>
-        </div>
-    </div>
-
-    <div data-role="subpage-dialog" id="chance-game">
-        <header data-role="header">
-            <h1>Win a COUPON</h1>
-        </header>
-        <div data-role="content">
-            <p>Play for 1 in 5 chance to win a free dessert coupon! By picking the winning item!</p>
-
+            <p data-bind="visible : refillables.length == 0">You need refillable items in your order.</p>
+            <div data-bind="visible : refillables.length > 0">
+                <h4>Refill Status :
+                    <span class="refill-status" data-bind="text : refillStatus"></span>
+                    <div data-bind="css: refillStatusMarkupClass "></div>
+                </h4>
+                <ul data-role="listview" data-inset="true">
+                    <li data-role="list-divider">New Refills</li>
+                </ul>
+                <fieldset data-role="controlgroup" data-bind="foreach : refillables">
+                    <label>
+                        <span data-bind="text : getName()"></span>
+                        <input type="checkbox" data-bind="attr: {'recipe-id': id }"/>
+                    </label>
+                </fieldset>
+                <a href="#" data-role="button" data-theme="b" data-bind="event: { tap : submitRequest }">Place Request</a>
+            </div>
         </div>
     </div>
 </div>

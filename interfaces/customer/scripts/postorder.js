@@ -6,17 +6,28 @@
  * To change this template use File | Settings | File Templates.
  */
 ( function($) {
+    // ENUMERATIONS
+    var STATUS = {
+        WAITER_STATUS_SERVED : 'serviced',
+        WAITER_STATUS_PENDING : 'pending'
+    }
     var MainContext = null; //Stores the page ( div[date-role='page'] when the page is first created
     var RefillScreen = null;
     var PaymentScreen = null;
+    var GameScreen = null;
 
     //cache the MainContext when post order page is first created
     PECR.registerCallback("post-order", "pagecreate", function(evt) {
         MainContext = $(evt.target);
-        //request waiter button
-        var waiterButton = $("#request-waiter-button", MainContext );
-        ko.applyBindings( { requestWaiter : requestWaiter }, waiterButton[0] );
 
+        //Bind 'request waiter' button to VM
+        var waiterButton = $("#request-waiter-button", MainContext );
+        ko.applyBindings( new RequestWaiterViewModel() , waiterButton[0] );
+
+        //Bind the order status wrapper div to VM
+        var orderStatusWrapper = $("#order-status-wrapper", MainContext );
+        if( !orderStatusWrapper.length ) throw new Error("#order-status-wrapper is non existent!");
+        ko.applyBindings( new OrderStatusViewModel(), orderStatusWrapper[0] );
     });
 
     //Payment screen initialization
@@ -41,14 +52,52 @@
     PECR.registerCallback("post-order", "pagebeforeshow", displayConfirmedOrder);
 
 
+
     /* Called to create markup for showing the confirmed ordered items in a 'ul' with an id of 'confirmed-cart' */
     function displayConfirmedOrder( ) {
         var order = OrderManager.getOrder();
         var confirmedcardUl = $("#confirmed-cart", MainContext );
+
         //apply ko bindings to only confirmed cart ul element
         ko.applyBindings( order, confirmedcardUl[0]);
         //make jqm apply bindings
         confirmedcardUl.listview('refresh');
+    }
+
+    /* ORDER STATUS VIEW MODEL */
+    function OrderStatusViewModel() {
+        var self = this;
+
+        self.order = OrderManager.getOrder();
+        self.orderStatus = ko.observable('placed'); //Stores the status of our order
+        /* Returns the css class that corresponds to our order status */
+        self.orderStatusMarkup = ko.computed( function() {
+            var status = self.orderStatus();
+            if( status == 'placed')
+                return "pending";
+            else if( status == 'ready' || status == 'paid')
+                return "approved";
+        });
+
+        //Register our ajax poll event
+        var pollEvent;
+        function periodicPoll() {
+            //clear the payload
+            var payload = {
+                orderid : self.order.getID()
+            };
+            //make the ajax call
+            ajaxDriver.call( ajaxDriver.REQUESTS.REQUEST_ORDER_STATUS, payload, function(data) {
+                var status = data.status;
+                self.orderStatus( status );
+                console.log("REQUEST_ORDER_STATUS yielded [%s]", status);
+                if( status == 'paid' ) {
+                    console.log("Order has been paid!");
+                    window.clearInterval(pollEvent );
+                }
+            });
+        }
+        pollEvent = window.setInterval( periodicPoll, 5000);
     }
 
     /* Our payment view model, contains data that is linked to bindings on the payment screen */
@@ -77,12 +126,31 @@
             }
             return (self.ourOrder.getTotal() - totalPosted  ).toFixed(2);
         });
+
+        self.tipAmount = ko.observable('0.0');
+        self.tipChart = [5,10,15];
+
+        /* Holds the total amount including the tip amount */
+        self.tippedTotal = ko.computed( function() {
+            var total = parseFloat( self.totalAmountLeft() );
+            var tipAmount = parseFloat( self.tipAmount() );
+            return total + tipAmount * total /100;
+        });
+
+        /* Used to compute the select drop down text for the different tip percentages */
+        self.computeTipChartText = function(percentage) {
+            var total = parseFloat( self.totalAmountLeft() );
+            var pct = parseFloat( percentage );
+            var tippedTotal = total + (total * pct /100 );
+            return pct+"% - $"+tippedTotal.toFixed(2);
+        }
+
         //What type of payment the user has selected
-        self.selectedType = ko.observable();
+        self.selectedType = ko.observable(null);
         self.isCardSelected = ko.computed( function() { return self.selectedType() == "CREDIT CARD"; } );
         self.isECheckSelected = ko.computed( function() { return self.selectedType() == "E-CHECK"; } );
         self.isCouponSelected = ko.computed( function() { return self.selectedType() == "COUPON"; } );
-        self.paymentAmount = ko.observable( self.ourOrder.getTotal().toFixed(2) );
+        self.paymentAmount = ko.observable( self.totalAmountLeft() );
         //Observable that contains logic to prevent negative numbers or numbers greater than the amount owed
         self.guardedPaymentAmount = ko.computed( {
             read : function() {
@@ -90,7 +158,7 @@
             },
             write : function(value) {
                 var asNumber = parseFloat(value);
-                var amountLeftAsNumber = parseFloat(self.totalAmountLeft() );
+                var amountLeftAsNumber = parseFloat(self.tippedTotal() );
                 if( asNumber <= 0 || asNumber >  amountLeftAsNumber )
                     asNumber = amountLeftAsNumber;
                 self.paymentAmount(0); //Force a value change so that 'read' will get invoked
@@ -103,7 +171,7 @@
             var payment = {
                 id : self.currentId++,
                 type : self.selectedType(),
-                amount : self.paymentAmount()
+                amount : parseFloat( self.paymentAmount()).toFixed(2)
             };
             //if we use a credit card, then apply those fields
             if( payment.type == "CREDIT CARD") {
@@ -121,18 +189,22 @@
             //increment payment id
             self.currentId = this.currentId++;
             //update self.paymentAmount() with total amount left
-            self.paymentAmount( self.totalAmountLeft() );
-            //update the selected type to undefined to clear all the fields
-            self.selectedType(undefined);
+            self.paymentAmount( self.tippedTotal() );
+            if( self.totalAmountLeft() <= 0 ) {
+                self.selectedType(null);
+                self.tipAmount(null);
+            }
         }
-        /* Invoked when submit payment is clicked */
+
+        /* Invoked when submit payment button is clicked */
         self.submitPayment = function() {
-            //create our JSON object and send our payment to the back end
+            //create our JSON object and send our payment to the backend
             var payload  = {
                     orderid : self.ourOrder.getID(),
                     payments : ko.utils.unwrapObservable( self.myPayments )
             };
             ajaxDriver.call( ajaxDriver.REQUESTS.CHARGE_ORDER, payload, function() {});
+            //mark it as submitted
             self.submitted(true);
             var pollId;
 
@@ -176,47 +248,67 @@
         }();
     };
 
-    /* REQUEST WAITER FUNCTIONS */
-    function requestWaiter() {
-        console.log("requesting Waiter....");
-        var tableNumber = SETTINGS.getTableNumber();
-        //place ajax call w/ our payload
-        var data = {
-            request_type : ajaxDriver.REQUESTS.REQUEST_WAITER,
-            payload : {
-                tablenumber : tableNumber
-            }
-        };
-        ajaxDriver.call( ajaxDriver.REQUESTS.REQUEST_WAITER, data, function(payload) {
-            for( var i in payload ) {
-                var menuAsJson = payload[i];
-                var recipesInMenu = menuAsJson['recipes'];
-                for( var j in recipesInMenu ) {
-                    var recipeAsJson = recipesInMenu[j];
+    /* VIEW MODEL FOR request waiter function, responsible for functionality of the 'request assistance' button
+        Handles status updates and also placing ajax calls when the button is pressed.
+     */
+    function RequestWaiterViewModel() {
+        var self = this;
 
-                    var ingredientsInRecipe = recipesInMenu[i]
-                }
-            }
-            console.log("Waiter has been requested!");
+        self.requestStatus = ko.observable();
+        self.requestStatusMarkupClass = ko.computed( function() {
+            var status = self.requestStatus();
+            if( status == STATUS.WAITER_STATUS_SERVED )
+                return 'waiter-request-serviced';
+            else if ( status == STATUS.WAITER_STATUS_PENDING )
+                return 'waiter-request-pending';
+            else
+                return null;
         });
 
-        function periodicStatusPoll() {
-            //request the status of the waiter
+        self.requestWaiter = function() {
+            console.log("requesting Waiter....");
+            //make the status pending
+            self.requestStatus( STATUS.WAITER_STATUS_PENDING );
+            var tableNumber = SETTINGS.getTableNumber();
+            //place ajax call w/ our payload
             var data = {
-                request_type : ajaxDriver.REQUESTS.REQUEST_WAITER_STATUS,
+                request_type : ajaxDriver.REQUESTS.REQUEST_WAITER,
                 payload : {
                     tablenumber : tableNumber
                 }
             };
-            ajaxDriver.call( ajaxDriver.REQUESTS.REQUEST_WAITER_STATUS, data, function(data) {
-                var status = data.status;
-                console.log("Request Waiter Status has yieled %s",status);
+            ajaxDriver.call( ajaxDriver.REQUESTS.REQUEST_WAITER, data, function(payload) {
+                for( var i in payload ) {
+                    var menuAsJson = payload[i];
+                    var recipesInMenu = menuAsJson['recipes'];
+                    for( var j in recipesInMenu ) {
+                        var recipeAsJson = recipesInMenu[j];
+
+                        var ingredientsInRecipe = recipesInMenu[i]
+                    }
+                }
+                console.log("Waiter has been requested!");
+                ///Register the interval event
+                var pollEvent = window.setInterval( periodicStatusPoll, 10000);
+                function periodicStatusPoll() {
+                    //request the status of the waiter
+                    var data = {
+                        request_type : ajaxDriver.REQUESTS.REQUEST_WAITER_STATUS,
+                        payload : {
+                            tablenumber : tableNumber
+                        }
+                    };
+                    ajaxDriver.call( ajaxDriver.REQUESTS.REQUEST_WAITER_STATUS, data, function(data) {
+                        var status = data.status;
+                        self.requestStatus( status );
+                        console.log("Request Waiter Status has yieled [%s]",status);
+                        if( status == STATUS.WAITER_STATUS_SERVED )
+                            window.clearInterval( pollEvent );
+                    });
+                }
             });
         }
-
-        var periodicStatus = window.setInterval( periodicStatusPoll, 10000);
     }
-
 
     /* REFILL SCREEN VIEW MODEL */
     function RefillScreenViewModel() {
@@ -232,46 +324,65 @@
                 self.refillables.push(  recipes[i] );
         }
 
-        self.refillStatus = ko.observable("Not Requested");
+        self.refillStatus = ko.observable("not requested");
+        self.refillStatusMarkupClass = ko.computed( function() {
+            if( self.refillStatus() == 'pending' )
+                return "pending";
+            else if( self.refillStatus() == "served")
+                return "approved";
+        });
+
+        self.resetStatus = function() { self.refillStatus('not requested'); }
+        self.pendingStatus = function() { self.refillStatus('pending'); }
 
         self.requested = ko.observable('false');
 
         self.submitRequest = function() {
+            self.pendingStatus(); //mark status as pending
             //get a list of recipes that we have selected
             var selectedRecipes = $("input:checked", RefillScreen );
             var checkedRecipes = new Array();
-            selectedRecipes.each( function(idx, element) {
-                var recipeId = $(this).attr('recipe-id');
+            function addToCheckedRecipes(idx, element) {
+                var recipeId = $(element).attr('recipe-id');
                 for(var i in self.refillables ) {
                     if( self.refillables[i].getID() == recipeId) {
-                        checkedRecipes.push( self.refillables[i] );
+                        var refillable = self.refillables[i];
+                        checkedRecipes.push( refillable );
                         break;
                     }
                 }
-            });
+            }
+            selectedRecipes.each( function(idx, element) {
+                return function() { addToCheckedRecipes(idx, element); };
+            }()  );
             //create our payload
             var payload = {
                 orderid : self.order.getID(),
                 recipes : checkedRecipes
             };
 
-            ajaxDriver.call( ajaxDriver.REQUESTS.REQUEST_REFILL, payload, function() {
+            function createPollingEvent() {
+                console.log("createPollingEvent has been called!");
+                var pollEvent;
 
-            });
-            var pollEvent;
+                function periodicRefillStatusPoll() {
 
-            function periodicRefillStatusPoll() {
-
-                var payload =  {
-                    orderid : self.order.getID()
+                    var payload =  {
+                        orderid : self.order.getID()
+                    }
+                    ajaxDriver.call( ajaxDriver.REQUESTS.REQUEST_REFILL_STATUS, payload, function(data) {
+                        console.log("Refill Status for orderid : %s is %s", data.status);
+                        self.refillStatus( data.status );
+                        if( data.status == 'served') {
+                            console.log("Refill status has been serviced, event has been removed!");
+                            window.clearInterval( pollEvent );
+                        }
+                    });
                 }
-                ajaxDriver.call( ajaxDriver.REQUESTS.REQUEST_REFILL_STATUS, payload, function(data) {
-                    console.log("Refill Status for orderid : %s is %s", data.status);
-                    self.refillStatus( data.status );
-                });
+                //Register the periodic poll event
+                pollEvent = window.setInterval( periodicRefillStatusPoll, 5000 );
             }
-            //Register the periodic poll event
-            pollEvent = window.setInterval( periodicRefillStatusPoll, 5000 );
+            ajaxDriver.call( ajaxDriver.REQUESTS.REQUEST_REFILL, payload, createPollingEvent  );
         }
     }
 
