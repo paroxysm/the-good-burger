@@ -23,7 +23,7 @@ var SETTINGS = function($) {
         setTableNumber : function(number) { tableNumber = number; },
         getPhase : function() { return phase; },
         setPhase : function(newphase) { phase = newphase; },
-        getControllerURL  : function() { return controllerUrl; },
+        getControllerURL  : function() { return "http://students.cse.unt.edu/~nac0072/4444/controller/controller.php"; },
         setControllerURL : function(url) { controllerUrl = url; return this; }
     };
 }(jQuery);

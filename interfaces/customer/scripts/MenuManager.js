@@ -22,10 +22,12 @@ var MenuMgr = function() {
     }
     /* callback for when we have our menus */
     function onMenusReceived(data) {
-        console.log("Menus have been received")
+        console.log("Menus have been received");
         for(var i in data) {
-            menus.push( data[i] );
-            console.log("onMenusReceived, added menu %s", data[i].getName() );
+            //Serialize the json objects into menu objects
+            var retrievedMenu = new Menu( data[i] );
+            menus.push( retrievedMenu );
+            console.log("onMenusReceived, added menu %s", retrievedMenu.getName() );
         }
     }
     /* callback for when we have our menu */

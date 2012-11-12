@@ -7,6 +7,8 @@
  */
 ( function($) {
     var MainContext = null; //Stores the page ( div[date-role='page'] when the page is first created
+    var RefillScreen = null;
+    var PaymentScreen = null;
 
     //cache the MainContext when post order page is first created
     PECR.registerCallback("post-order", "pagecreate", function(evt) {
@@ -18,16 +20,21 @@
     });
 
     //Payment screen initialization
-    PECR.registerCallback("payment-screen", "pageinit", function() {
+    PECR.registerCallback("payment-screen", "pageinit", function(event) {
         // Add functionality for our #payment-screen dialog by applying bindings
-        var paymentScreenDialog = $("#payment-screen");
-        if( !paymentScreenDialog.length ) throw new Error("#payment-screen dialog is missing!");
+        PaymentScreen = $(event.target);
+        if( !PaymentScreen.length ) throw new Error("#payment-screen dialog is missing!");
         //Create a new payment view model as bind it to payment screen
         var paymentViewModel = new PaymentViewModel();
         //use ko.applyBinding's 2nd parameter to limit where we want the bindings to be applied
-        ko.applyBindings(paymentViewModel, paymentScreenDialog[0] );
+        ko.applyBindings(paymentViewModel, PaymentScreen[0] );
 //        paymentScreenDialog.trigger('create');
+    });
 
+    PECR.registerCallback("refill-screen", "pagecreate", function(event) {
+        RefillScreen = $(event.target);
+        if( ! RefillScreen.length) throw new Error("refill-screen is missing!");
+        ko.applyBindings( new RefillScreenViewModel(), RefillScreen[0]);
 
     });
     //functionality for displaying the confirmed ordered items once they have placed the order
@@ -46,17 +53,20 @@
 
     /* Our payment view model, contains data that is linked to bindings on the payment screen */
     function PaymentViewModel() {
-        self = this;
+        var self = this;
         self.currentId = 1;
         //holds all the payments that have been added by the user( it's an array to support split ticket )
         self.myPayments = ko.observableArray([]);
         //Allow types of payment a user can select
         self.allowedTypes = ko.observableArray(["CREDIT CARD", "E-CHECK", "CHECK/CASH"]);
 
+
         //Only add allow coupon type if have it
         self.ourOrder = OrderManager.getOrder();
         if( self.ourOrder.hasCoupon() )
             self.allowedTypes.push("COUPON");
+
+        self.canPay = self.ourOrder.getTotal() > 0.0;
 
         //Total amount left, computed by taking into account all the posted payments and subtracting what our order cost */
         self.totalAmountLeft = ko.computed( function() {
@@ -118,19 +128,25 @@
         /* Invoked when submit payment is clicked */
         self.submitPayment = function() {
             //create our JSON object and send our payment to the back end
-            var data = {
-                request_type : ajaxDriver.REQUESTS.CHARGE_ORDER,
-                payload : {
+            var payload  = {
                     orderid : self.ourOrder.getID(),
                     payments : ko.utils.unwrapObservable( self.myPayments )
-                }
             };
-            ajaxDriver.call( ajaxDriver.REQUESTS.CHARGE_ORDER, data, function(data) {
-                var status = data.status;
-                var info = data.info;
-                console.log("Posted payments are %s, %s", status, info);
-            });
+            ajaxDriver.call( ajaxDriver.REQUESTS.CHARGE_ORDER, payload, function() {});
             self.submitted(true);
+            var pollId;
+
+            function periodicChargeOrderStatus() {
+                ajaxDriver.call( ajaxDriver.REQUESTS.REQUEST_CHARGE_STATUS, { orderid: self.ourOrder.getID() }, function(data) {
+                    console.log("REQUEST_CHARGE_STATUS yielded '%s'", data.status);
+                    self.paymentStatus( data.status );
+                    if( data.status  == 'paid') {
+                        console.log("REQUEST_CHARGE_STATUS order has been paid!");
+                        window.clearInterval(pollId );
+                    }
+                });
+            }
+            pollId = window.setInterval( periodicChargeOrderStatus, 5000);
         }
         /* True when the order has been submitted */
         self.submitted = ko.observable(false);
@@ -171,7 +187,16 @@
                 tablenumber : tableNumber
             }
         };
-        ajaxDriver.call( ajaxDriver.REQUESTS.REQUEST_WAITER, data, function() {
+        ajaxDriver.call( ajaxDriver.REQUESTS.REQUEST_WAITER, data, function(payload) {
+            for( var i in payload ) {
+                var menuAsJson = payload[i];
+                var recipesInMenu = menuAsJson['recipes'];
+                for( var j in recipesInMenu ) {
+                    var recipeAsJson = recipesInMenu[j];
+
+                    var ingredientsInRecipe = recipesInMenu[i]
+                }
+            }
             console.log("Waiter has been requested!");
         });
 
@@ -189,7 +214,65 @@
             });
         }
 
-        var periodicStatus = window.setInterval( periodicStatusPoll, 5000);
+        var periodicStatus = window.setInterval( periodicStatusPoll, 10000);
+    }
+
+
+    /* REFILL SCREEN VIEW MODEL */
+    function RefillScreenViewModel() {
+        var self = this;
+
+        self.order = OrderManager.getOrder(); //Order instance
+
+        self.refillables = new Array(); //Stores list of the recipes that are refillable, used by VM
+        //insert refillable recipes in our array
+        var recipes = self.order.getRecipes();
+        for( var i in recipes ) {
+            if( recipes[i].isRefillable() )
+                self.refillables.push(  recipes[i] );
+        }
+
+        self.refillStatus = ko.observable("Not Requested");
+
+        self.requested = ko.observable('false');
+
+        self.submitRequest = function() {
+            //get a list of recipes that we have selected
+            var selectedRecipes = $("input:checked", RefillScreen );
+            var checkedRecipes = new Array();
+            selectedRecipes.each( function(idx, element) {
+                var recipeId = $(this).attr('recipe-id');
+                for(var i in self.refillables ) {
+                    if( self.refillables[i].getID() == recipeId) {
+                        checkedRecipes.push( self.refillables[i] );
+                        break;
+                    }
+                }
+            });
+            //create our payload
+            var payload = {
+                orderid : self.order.getID(),
+                recipes : checkedRecipes
+            };
+
+            ajaxDriver.call( ajaxDriver.REQUESTS.REQUEST_REFILL, payload, function() {
+
+            });
+            var pollEvent;
+
+            function periodicRefillStatusPoll() {
+
+                var payload =  {
+                    orderid : self.order.getID()
+                }
+                ajaxDriver.call( ajaxDriver.REQUESTS.REQUEST_REFILL_STATUS, payload, function(data) {
+                    console.log("Refill Status for orderid : %s is %s", data.status);
+                    self.refillStatus( data.status );
+                });
+            }
+            //Register the periodic poll event
+            pollEvent = window.setInterval( periodicRefillStatusPoll, 5000 );
+        }
     }
 
 })(jQuery);

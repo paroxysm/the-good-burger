@@ -6,8 +6,7 @@
  * To change this template use File | Settings | File Templates.
  */
 
-var IS_MOCKING = true;
-
+var IS_MOCKING = false;
 /* This class is responsible for making ajax calls and dispatching the data that comes back to registered handlers
     It revolves around the convention of any json data follow the form { request_type : <type>, payload : <datatosend> }
     when posting/getting to the server. It relies on jQuery's ajax api
@@ -17,42 +16,50 @@ var ajaxDriver = function($) {
     if( !SETTINGS.getControllerURL() )
         console.warn("ajaxDriver, controller Url is not valid!");
 
-    var DEFAULT_TIMEOUT = 5000;
+    var DEFAULT_TIMEOUT = 15000;
     var METHOD_TYPE = { POST : "POST", GET : "GET"};
 
 
     var defaultMethod = METHOD_TYPE.POST;
 
     /* Wraps the callback w/ a function that logs the error and passes the text status to the error handler */
-    function errorWrapper(callback ) {
+    function errorWrapper(callback, requestType, payload) {
         return function(XHR, textStatus, thrownException) {
-            console.log("ajaxDriver::genericErrorHandler status : %s Exception : %s", textStatus, (thrownException ? thrownException.toString() : "unknown" ) );
+            console.log("ajaxDriver::genericErrorHandler status : %s Exception : %s for request type %s", textStatus, (thrownException ? thrownException.toString() : "unknown" ), requestType );
+
             if( callback )
                 callback.call(null, textStatus);
         }
     }
     /* Wraps the specified callback in a function that logs the success and calls the callback w/ just the data parameter */
-    function successWrapper( callback ) {
+    function successWrapper( callback , requestType, payload) {
         return function(data, textStatus, XHR ) {
             console.log("ajaxDriver::successWrapper textStatus :%s", textStatus);
-            callback.call(null, data);
+            try {
+             callback.call(null, data);
+            }
+            catch(e) {
+                console.log("success Wrapper caught exception "+e);
+            }
         }
     }
 
-    function realAjaxCall(requestType, payload, successCallback, method, errorHandler, timeout)  {
-        if( !requestType || !payload || !successCallback )
+    function realAjaxCall(requestType, payload, successCallback, errorHandler, method, timeout)  {
+        if( !requestType || !successCallback )
             throw new Error("ajaxDriver::call first 3 arguments must be valid/non-null!");
         if( !SETTINGS.getControllerURL() )
             throw new Error("ajaxDriver::call, controller Url is invalid/null!");
         //convention
         var dataSent = { request_type : requestType, payload : payload };
         //place the ajax call
-        $.ajax(SETTINGS.getControllerURL(), {
+        console.log("Placed ajax call for request type '%s'",requestType);
+        jQuery.ajax(SETTINGS.getControllerURL(), {
             type : (method ? method : defaultMethod ),
             data : dataSent,
             dataType : "json",
-            success : successWrapper( successCallback ),
-            error : errorWrapper( errorHandler ),
+            crossDomain : true,
+            success : successWrapper( successCallback , requestType, payload),
+            error : errorWrapper( errorHandler, requestType, payload),
             timeout : (timeout ? timeout : DEFAULT_TIMEOUT)
         } );
     }
@@ -68,10 +75,21 @@ var ajaxDriver = function($) {
 
     function mockAjaxCall( requestType, payload, successCallback, method, errorHandler, timeout ) {
         for( var i in registeredMockCallbacks ) {
-            if( registeredMockCallbacks[i].type == requestType ) {
+            var mockEntry = registeredMockCallbacks[i];
+            if( mockEntry.type == requestType ) {
+                //follow convention style
+                var data = {
+                    request_type : requestType,
+                    payload : payload
+                };
                 console.log("mockAjaxCall dispatched mock for request type : %s", requestType );
-                var returnedData = registeredMockCallbacks[i].cb.call(null, payload );
-                successCallback.call(null, returnedData);
+                try {
+                    var returnedData = mockEntry.cb.call(null, data );
+                    successCallback.call(null, returnedData);
+                }
+                catch(e) {
+                    throw e;
+                }
             }
         }
     }
@@ -104,6 +122,7 @@ var ajaxDriver = function($) {
 
 //mock for request_menus
 ajaxDriver.registerMockCallbackForType( ajaxDriver.REQUESTS.REQUEST_MENUS, function(payload ) {
+
     var ingredients1 = [ new Ingredient().setName("ingredient 1"),
         new Ingredient().setName("ingredient 2"),
         new Ingredient().setName("ingredient 3") ,
@@ -155,6 +174,24 @@ ajaxDriver.registerMockCallbackForType( ajaxDriver.REQUESTS.REQUEST_MENUS, funct
     return [sampleMenu,sampleMenu2,sampleMenu3,sampleMenu4,sampleMenu5];
 });
 
-ajaxDriver.registerMockCallbackForType( ajaxDriver.REQUESTS.REQUEST_MENU, function(payload, success) {
+ajaxDriver.registerMockCallbackForType( ajaxDriver.REQUESTS.REQUEST_MENU, function(data) {
 
+});
+
+var OrderStatuses = new Array();
+var statuses = [ "Placed", "Ready", "Paid"];
+ajaxDriver.registerMockCallbackForType( ajaxDriver.REQUESTS.PLACE_ORDER, function(data) {
+    console.log("PLACE_ORDER mock invoked with %d recipes!", data.payload.recipes.length);
+    var orderid = Math.floor( (Math.random() * 100) +1 );
+    OrderStatuses[orderid] = statuses[ Math.floor( Math.random() * 2) ];
+    return {
+        orderid : orderid //Order between 1-100
+    };
+});
+
+ajaxDriver.registerMockCallbackForType( ajaxDriver.REQUESTS.REQUEST_ORDER_STATUS, function(data) {
+    console.log("REQUEST_ORDER_STATUS mock invoked with order id %s", data.payload.orderid);
+    return {
+        status : statuses[ Math.floor( Math.random() * 2) ]
+    };
 });

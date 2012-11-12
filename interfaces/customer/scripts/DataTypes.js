@@ -6,12 +6,21 @@
  * To change this template use File | Settings | File Templates.
  */
 /* This class is at the low level that makes up menu items */
-function Ingredient() {
+function Ingredient( asJSON ) {
+
     this.count = null;
     this.calories = null;
     this.unitSize = null;
-    this.expiringDate = null;
     this.name = null
+
+    /* Handle incoming data from json */
+    if( asJSON ) {
+        this.count = asJSON.count;
+        this.calories = asJSON.calories;
+        this.unitSize = asJSON.unitSize;
+        this.name = asJSON.name;
+//        this.expiringDate = asJSON.expiringDate
+    }
 
     this.getCount = function() { return this.count; }
     this.getCalories = function() { return this.calories; }
@@ -27,11 +36,29 @@ function Ingredient() {
 }
 
 /* These classes represent items that can be sold/displayed on the menu */
-function Recipe() {
+function Recipe( asJSON ) {
     this.price = null;
     this.name = null;
     this.ingredients = new Array();
     this.description = null;
+    this.refillable = null;
+    this.id = null;
+
+    /* Handle data coming in from JSON */
+    if( asJSON ) {
+        this.price = asJSON.price;
+        this.name = asJSON.name;
+        this.description = asJSON.description;
+        this.refillable = asJSON.refillable;
+        this.id = asJSON.id;
+
+        for(var i in asJSON.ingredients ) {
+            this.ingredients.push( new Ingredient( asJSON.ingredients[i] ) );
+        }
+    }
+
+    this.getID = function() { return this.id; }
+    this.setID = function(id) { this.id = id; }
 
     this.getPrice = function() { return this.price; }
     this.getName = function() { return this.name; }
@@ -70,20 +97,35 @@ function Recipe() {
     }
 
     this.getCalories = function() {
-        var totalCalories = 0;
+        var totalCalories = 0.0;
         for(var i in this.ingredients ) {
-            totalCalories += this.ingredients[i].getCalories();
+            totalCalories += parseFloat( this.ingredients[i].getCalories() );
         }
         return totalCalories;
     }
 
+    this.isRefillable = function() { return this.refillable == 'true'; }
+    this.setRefillable = function() { this.refillable = 'true'; return this; }
+    this.setNotRefillable = function() { this.refillable = 'false'; return this; }
+
     this.listIngredients = function() { return this.ingredients; }
 }
 
-function Menu() {
+function Menu(asJSON) {
     this.name = null;
-//    this.comprehensiveIngredients = new Array();
     this.recipes = new Array();
+
+    /* Handle menus coming in JSON form */
+    if( asJSON ) {
+        this.name = asJSON.name;
+        if( asJSON.recipes ) {
+            for( var i in asJSON.recipes ) {
+                this.recipes.push( new Recipe( asJSON.recipes[i] ) );
+            }
+        }
+        else
+            console.warn("No recipes were loaded for menu %s", this.name);
+    }
 
     this.getName = function() { return this.name; }
     this.setName = function(name) { this.name = name; return this; }

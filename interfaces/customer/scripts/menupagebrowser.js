@@ -12,6 +12,7 @@
     /* Listen for pagecreate to initialize our dynamic menus */
     PECR.registerCallback("menu", "pagecreate", initialize);
     PECR.registerCallback("menu", "pagebeforeshow", function() { showMenuDOM(currentVisibleMenu, MenuPageContext); });
+//    PECR.registerCallback("menu", "refresh", function() { showMenuDOM(currentVisibleMenu, MenuPageContext); });
 
     var currentVisibleMenu = null;
     var currentVisibleRecipe = null;
@@ -49,8 +50,11 @@
 
         //retrieve our menus from menumgr
         var fetchedMenus = MenuMgr.getMenus();
-        if( fetchedMenus.length == 0 )
+        if( fetchedMenus.length == 0 ) {
             console.log("populateMenuNavList, we have no menus to display!");
+            return;
+        }
+
         //clear list of menu items first
         menuNavToolbar.empty();
 
@@ -259,6 +263,9 @@
             //set the banner
             var banner = $('.menuitem-banner', contentClone);
             banner.text(recipe.getName() );
+            //set the calories
+            var caloriesElement = $(".menuitem-calories", contentClone );
+            caloriesElement.text( recipe.getCalories().toFixed(2) );
             //set the image
             var imgSpace = $('.menuitem-image', contentClone);
             imgSpace.addClass("loading");
@@ -305,7 +312,12 @@
                 //Create a new recipe object and add the checked ingredients by using the clicked recipe
                 var oldRecipe = MenuMgr.findMenu( currentVisibleMenu ).findRecipe( currentVisibleRecipe );
                 if( !oldRecipe ) throw new Error("onAddtoCartClick oldRecipe of name "+currentVisibleRecipe+" was not found!");
-                var newRecipe = new Recipe().setName( oldRecipe.getName()).setPrice( oldRecipe.getPrice() );
+                var newRecipe = new Recipe().setName( oldRecipe.getName()).setPrice( oldRecipe.getPrice());
+                newRecipe.setDescription( oldRecipe.getDescription()).setID( oldRecipe.getID() );
+                if( oldRecipe.isRefillable() )
+                    newRecipe.setRefillable();
+                else
+                    newRecipe.setNotRefillable();
                 var checkedIngredients = $('input:checked', controlsSpace );
                 checkedIngredients.each( function(index) {
                     var ingredientName = $(this).attr('ingredient-name'); //we've selected input type, but we're interested parent label
@@ -381,6 +393,7 @@
             ulElement.listview('refresh');
         }
     }
+
     /*
      */
     PECR.registerCallback("confirm-order", "pageinit", function(evt, obj) {
@@ -392,11 +405,47 @@
             var foodcartRecipes = FOODCART.getRecipes();
             for( var i in foodcartRecipes ) {
                 var recipe = foodcartRecipes[i].getRecipe();
-                order.setTotal( order.getTotal() + recipe.getPrice() );
+                order.setTotal( order.getTotal() + parseFloat( recipe.getPrice() ) );
                 order.addRecipe( recipe );
             }
             //set the order instance
             OrderManager.setOrder( order );
+            //make our ajax call
+            //first create our ajax payload
+            var orderRecipes = {
+                recipes : new Array()
+            };
+            for( var i in foodcartRecipes ) {
+                var recipe = foodcartRecipes[i].getRecipe();
+                orderRecipes.recipes.push( recipe );
+            }
+            orderRecipes.recipes = JSON.parse( JSON.stringify(orderRecipes.recipes) );
+            function successFunction(data) {
+                console.log("PLACE_ORDER has been served with order id %d", data.orderid);
+                order.setID( data.orderid );
+                var pollEvent = window.setInterval(periodicOrderStatusPoll, 5000);
+
+                //Register period poll for order status
+                function periodicOrderStatusPoll() {
+                    //payload
+                    var orderidPayload = {
+                        orderid : order.getID()
+                    };
+                    //
+                    ajaxDriver.call(ajaxDriver.REQUESTS.REQUEST_ORDER_STATUS, orderidPayload, function(data) {
+                        console.log("REQUEST_ORDER_STATUS is %s",data.status);
+                        if( data.status == 'paid') {
+                            window.clearInterval(pollEvent );
+                            console.log("REQUEST_ORDER_STATUS poll event cleared!");
+                        }
+                    });
+                }
+            }
+            function errorRetry() {
+                console.log("Error for PLACE_ORDER, trying again!");
+                ajaxDriver.call(ajaxDriver.REQUESTS.PLACE_ORDER, orderRecipes, successFunction, errorRetry );
+            }
+            ajaxDriver.call(ajaxDriver.REQUESTS.PLACE_ORDER, orderRecipes, successFunction, errorRetry );
         });
     });
 
@@ -418,7 +467,7 @@
 
             liElement.text( recipe.getName() );
             spanElement.text( recipe.getPrice() );
-            totalPrice += recipe.getPrice();
+            totalPrice += parseFloat( recipe.getPrice() );
             spanElement.addClass("ui-li-aside foodcartprice");
             liElement.append( spanElement );
             foodcartdivider.after( liElement );

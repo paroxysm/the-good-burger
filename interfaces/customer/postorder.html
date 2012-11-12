@@ -71,7 +71,9 @@
         <header data-role="header" data-theme="c">
             <h4>Pay your Bill</h4>
         </header>
-        <div data-role="content" data-theme="c">
+        <div data-role="content" data-theme="c" >
+            <p data-bind="visible : !canPay">You have ordered no items!</p>
+            <div data-bind="visible : canPay">
             <ul data-role="listview" data-inset="true">
                 <li data-role="list-divider">Placed Payments: </li>
                 <!-- ko foreach : myPayments -->
@@ -112,6 +114,7 @@
                 <span data-bind="text : paymentStatus"></span>
                 <div data-bind="css: paymentMarkupClass"></div>
             </h4>
+            </div>
 
         </div>
     </div>
@@ -122,18 +125,19 @@
         </header>
         <div data-role="content">
             <h4>Refill Status :
-                <span class="refill-status">Not Placed</span>
+                <span class="refill-status" data-bind="text : refillStatus"></span>
                 <div class="refill-graphic"></div>
             </h4>
             <ul data-role="listview" data-inset="true">
                 <li data-role="list-divider">New Refills</li>
             </ul>
-            <fieldset data-role="controlgroup">
-                <label>SomeThing <input type="checkbox"/></label>
-                <label>SomeThing <input type="checkbox"/></label>
-                <label>SomeThing <input type="checkbox"/></label>
+            <fieldset data-role="controlgroup" data-bind="foreach : refillables">
+                <label>
+                    <span data-bind="text : getName()"></span>
+                    <input type="checkbox" data-bind="attr: {'recipe-id': id }"/>
+                </label>
             </fieldset>
-            <a href="#" data-role="button" data-rel="back" data-theme="b">Place Request</a>
+            <a href="#" data-role="button" data-rel="back" data-theme="b" data-bind="event: { tap : submitRequest }">Place Request</a>
         </div>
     </div>
 
