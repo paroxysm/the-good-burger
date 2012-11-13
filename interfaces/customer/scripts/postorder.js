@@ -28,6 +28,8 @@
         var orderStatusWrapper = $("#order-status-wrapper", MainContext );
         if( !orderStatusWrapper.length ) throw new Error("#order-status-wrapper is non existent!");
         ko.applyBindings( new OrderStatusViewModel(), orderStatusWrapper[0] );
+
+        displayConfirmedOrder();
     });
 
     //Payment screen initialization
@@ -48,28 +50,51 @@
         ko.applyBindings( new RefillScreenViewModel(), RefillScreen[0]);
 
     });
-    //functionality for displaying the confirmed ordered items once they have placed the order
-    PECR.registerCallback("post-order", "pagebeforeshow", displayConfirmedOrder);
+
+    /*//functionality for displaying the confirmed ordered items once they have placed the order
+    PECR.registerCallback("post-order", "pagebeforeshow", displayConfirmedOrder);*/
 
 
 
     /* Called to create markup for showing the confirmed ordered items in a 'ul' with an id of 'confirmed-cart' */
     function displayConfirmedOrder( ) {
-        var order = OrderManager.getOrder();
         var confirmedcardUl = $("#confirmed-cart", MainContext );
-
         //apply ko bindings to only confirmed cart ul element
-        ko.applyBindings( order, confirmedcardUl[0]);
+        ko.applyBindings( new ConfirmedCartViewModel(), confirmedcardUl[0]);
         //make jqm apply bindings
-        confirmedcardUl.listview('refresh');
+//        confirmedcardUl.listview('refresh');
     }
 
-    /* ORDER STATUS VIEW MODEL */
+
+    /* CONFIRMED ITEMS  VIEW MODEL
+     * Responsible for displaying the list of ordered items in an uneditable list
+     * It also displays the total and number of calories in the order
+    */
+    function ConfirmedCartViewModel() {
+        var self = this;
+
+        self.order = OrderManager.getOrder();
+        self.recipes = self.order.getRecipes();
+        self.totalCalories = function() {
+            var calories = 0;
+            for( var i in self.recipes ) {
+                calories += parseInt( self.recipes[i].getCalories() );
+            }
+            return calories;
+        }();
+
+        self.total = self.order.getTotal().toFixed(2);
+    }
+    /* ORDER STATUS VIEW MODEL
+    * Responsible for updating our order status and also placing the ajax calls that fetch the status
+    *
+    * */
     function OrderStatusViewModel() {
         var self = this;
 
         self.order = OrderManager.getOrder();
-        self.orderStatus = ko.observable('placed'); //Stores the status of our order
+        self.order.setStatus('placed');
+        self.orderStatus = ko.observable( self.order.getStatus() ); //Stores the status of our order
         /* Returns the css class that corresponds to our order status */
         self.orderStatusMarkup = ko.computed( function() {
             var status = self.orderStatus();
@@ -90,6 +115,7 @@
             ajaxDriver.call( ajaxDriver.REQUESTS.REQUEST_ORDER_STATUS, payload, function(data) {
                 var status = data.status;
                 self.orderStatus( status );
+                self.order.setStatus(status);
                 console.log("REQUEST_ORDER_STATUS yielded [%s]", status);
                 if( status == 'paid' ) {
                     console.log("Order has been paid!");
@@ -118,24 +144,30 @@
         self.canPay = self.ourOrder.getTotal() > 0.0;
 
         //Total amount left, computed by taking into account all the posted payments and subtracting what our order cost */
-        self.totalAmountLeft = ko.computed( function() {
+        self.getTotalAmountLeft = function() {
             var totalPosted = 0.0;
             var myPaymentsAsValue = self.myPayments();
             for( var i in myPaymentsAsValue) {
                 totalPosted += parseFloat(myPaymentsAsValue[i].amount );
             }
-            return (self.ourOrder.getTotal() - totalPosted  ).toFixed(2);
-        });
+            var whatsLeft = self.ourOrder.getTotal() - totalPosted;
+            whatsLeft = whatsLeft < 0 ? 0 : whatsLeft;
+            return whatsLeft.toFixed(2);
+        }
+        self.totalAmountLeft = ko.computed( self.getTotalAmountLeft );
 
         self.tipAmount = ko.observable('0.0');
-        self.tipChart = [5,10,15];
+        self.tipChart = [5,10,15, 20, 25, 30];
 
         /* Holds the total amount including the tip amount */
-        self.tippedTotal = ko.computed( function() {
-            var total = parseFloat( self.totalAmountLeft() );
+
+        self.getTippedTotal = function() {
+            var total = parseFloat( self.getTotalAmountLeft() );
             var tipAmount = parseFloat( self.tipAmount() );
+            tipAmount = isNaN(tipAmount) ? 0 : tipAmount;
             return total + tipAmount * total /100;
-        });
+        }
+        self.tippedTotal = ko.computed( self.getTippedTotal );
 
         /* Used to compute the select drop down text for the different tip percentages */
         self.computeTipChartText = function(percentage) {
@@ -143,6 +175,10 @@
             var pct = parseFloat( percentage );
             var tippedTotal = total + (total * pct /100 );
             return pct+"% - $"+tippedTotal.toFixed(2);
+        }
+
+        self.removePayment = function(payment) {
+            self.myPayments.remove(payment);
         }
 
         //What type of payment the user has selected
@@ -158,11 +194,12 @@
             },
             write : function(value) {
                 var asNumber = parseFloat(value);
-                var amountLeftAsNumber = parseFloat(self.tippedTotal() );
-                if( asNumber <= 0 || asNumber >  amountLeftAsNumber )
+                var tippedTotal = self.getTippedTotal();
+                var amountLeftAsNumber = parseFloat( tippedTotal );
+                if( isNaN(asNumber) || asNumber <= 0 || asNumber >  amountLeftAsNumber )
                     asNumber = amountLeftAsNumber;
                 self.paymentAmount(0); //Force a value change so that 'read' will get invoked
-                self.paymentAmount( asNumber );
+                self.paymentAmount( asNumber.toFixed(2) );
             }
         } );
 
@@ -189,8 +226,8 @@
             //increment payment id
             self.currentId = this.currentId++;
             //update self.paymentAmount() with total amount left
-            self.paymentAmount( self.tippedTotal() );
-            if( self.totalAmountLeft() <= 0 ) {
+            self.guardedPaymentAmount( self.getTippedTotal() );
+            if( self.getTotalAmountLeft() <= 0 ) {
                 self.selectedType(null);
                 self.tipAmount(null);
             }
@@ -383,6 +420,21 @@
                 pollEvent = window.setInterval( periodicRefillStatusPoll, 5000 );
             }
             ajaxDriver.call( ajaxDriver.REQUESTS.REQUEST_REFILL, payload, createPollingEvent  );
+        }
+    }
+
+    PECR.registerCallback("place-another-order-confirmation", "pagecreate", function(event) {
+        ko.applyBindings( new PlaceNewOrderViewModel(), event.target);
+    });
+
+    function PlaceNewOrderViewModel() {
+
+        var self = this;
+        //The user has confirmed that they want to start over, clear the food cart
+        self.Confirm = function() {
+            FOODCART.clear();
+            console.log("User has confirmed, clearing food cart!");
+            return true;
         }
     }
 

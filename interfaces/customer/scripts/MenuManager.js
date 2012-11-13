@@ -10,6 +10,8 @@ var MenuMgr = function() {
 
     var menus = new Array(); //stores our menus objects
 //    var menus = [ sampleMenu, sampleMenu2, sampleMenu3, sampleMenu4, sampleMenu5 ];
+    var onMenusFetchedCB;
+    var onMenuFetchedCB;
 
     var lastFetchTime = null;
 
@@ -29,10 +31,15 @@ var MenuMgr = function() {
             menus.push( retrievedMenu );
             console.log("onMenusReceived, added menu %s", retrievedMenu.getName() );
         }
+        if( onMenusFetchedCB ) {
+            onMenusFetchedCB.call(null);
+        }
     }
     /* callback for when we have our menu */
     function onMenuReceived(data ) {
-
+        if( onMenuFetchedCB ) {
+            onMenuFetchedCB.call(null);
+        }
     }
 
     return {
@@ -49,10 +56,8 @@ var MenuMgr = function() {
             return foundmenu;
         },
         /* Fetches our menus from back end */
-        fetchMenus : function() { internalfetchmenus.apply(this, arguments); },
+        fetchMenus : function( onFetchedCb ) { internalfetchmenus.apply(this, arguments); onMenusFetchedCB = onFetchedCb; },
         /* Fetch a specific menu from the back end */
-        fetchMenu : function() { internalfetchmenu.apply(this, arguments); }
+        fetchMenu : function( onFetchCb) { internalfetchmenu.apply(this, arguments); onMenuFetchedCB = onFetchCb; }
     }
 }();
-
-MenuMgr.fetchMenus();

@@ -26,7 +26,7 @@
     <meta http-equiv="pragma" content="no-cache"/>
 </head>
 <body>
-<div data-role="page" id="post-order">
+<div data-role="page" id="post-order" data-dom-cache="true">
 
     <div data-role="header" data-theme="c">
         <h3>Payment Screen</h3>
@@ -41,20 +41,27 @@
             </div>
         </div>
 
-
-        <ul data-role="listview" data-inset="true" id="confirmed-cart">
-            <!-- ko foreach : getRecipes() -->
-            <li>
-                <span data-bind="text : $data.getName()"></span>
-                <span class="ui-li-aside foodcartprice" data-bind="text : $data.getPrice()"></span>
-            </li>
-            <!-- /ko -->
-            <li>
-                Total
-                <span  class="ui-li-aside foodcartprice foodcartpricetotal" data-bind="text : getTotal().toFixed(2)"></span>
-            </li>
-        </ul>
-
+        <div id="confirmed-cart">
+            <ul data-role="listview" data-inset="true">
+                <li data-role="list-divider">Ordered Items</li>
+                <!-- ko foreach : recipes -->
+                <li>
+                    <span data-bind="text : $data.getName()"></span>
+                    <span class="ui-li-aside foodcartprice" data-bind="text : $data.getPrice()"></span>
+                </li>
+                <!-- /ko -->
+                <li data-theme="e">
+                    Total
+                    <span  class="ui-li-aside foodcartprice foodcartpricetotal" data-bind="text : total"></span>
+                </li>
+            </ul>
+            <ul data-role="listview" data-inset="true">
+                <li data-role="list-divider">
+                    Total Calories
+                    <span class="ui-li-aside" data-bind="text: totalCalories"/>
+                </li>
+            </ul>
+        </div>
         </br>
         <a href="#payment-screen" data-role="button" date-rel="dialog" data-theme="b">Pay Order</a>
     </div>
@@ -62,8 +69,8 @@
         <div data-role="navbar" data-iconpos="top">
             <ul>
                 <li><a href="#refill-screen">Request Refill</a></li>
-                <!--<li><a href="#">Add Extra Items</a></li>-->
                 <li><a href="#" data-bind="event: { tap : requestWaiter }, css : requestStatusMarkupClass" id="request-waiter-button">Request Assistance</a></li>
+                <li><a href="#place-another-order-confirmation" id="place-another-order" >Place Order</a></li>
             </ul>
         </div>
     </footer>
@@ -80,7 +87,10 @@
                 <!-- ko foreach : myPayments -->
                 <li>
                     <span data-bind="text : type"></span>
-                    <span data-bind="text : '('+amount+')'" class="ui-li-aside"></span>
+                    <span class="ui-li-aside">
+                        <span data-bind="text : '('+amount+')'"></span>
+                        <span class="removecontrol" data-bind="click : $parent.removePayment, visible : $parent.submitted() == false"></span>
+                    </span>
                 </li>
                 <!-- /ko -->
                 <li>
@@ -144,6 +154,21 @@
                     </label>
                 </fieldset>
                 <a href="#" data-role="button" data-theme="b" data-bind="event: { tap : submitRequest }">Place Request</a>
+            </div>
+        </div>
+    </div>
+
+    <div id="place-another-order-confirmation" data-role="subpage-dialog">
+        <header data-role="header" data-theme="c">
+            <h1>Are you Sure?</h1>
+        </header>
+        <div data-role="content" >
+            <!--<p data-bind="visible : !order().isPaid()">You cannot place a new order without paying for the current one first!</p>-->
+            <div >
+                <p>Placing another order will clear your current cart and receipt.</p>
+                <h4>Are you sure you want place another order?</h4>
+                <a href="index.html" data-role="button" data-inline="true" data-theme="b" data-bind="event : { tap : Confirm }">Yes I do</a>
+                <a href="#" data-rel="back" data-role="button" data-inline="true">No, I've changed my mind</a>
             </div>
         </div>
     </div>

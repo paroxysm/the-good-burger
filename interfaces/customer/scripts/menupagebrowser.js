@@ -12,13 +12,13 @@
     /* Listen for pagecreate to initialize our dynamic menus */
     PECR.registerCallback("menu", "pagecreate", initialize);
     PECR.registerCallback("menu", "pagebeforeshow", function() { showMenuDOM(currentVisibleMenu, MenuPageContext); });
-//    PECR.registerCallback("menu", "refresh", function() { showMenuDOM(currentVisibleMenu, MenuPageContext); });
 
     var currentVisibleMenu = null;
     var currentVisibleRecipe = null;
 
     /* Initializes controls(ie, binding events) for this page */
     function initialize(evt, page) {
+
         //Set our page context
         MenuPageContext = $(evt.target );
         populateMenuNavList(evt, page);
@@ -410,16 +410,22 @@
             }
             //set the order instance
             OrderManager.setOrder( order );
-
+            //Check whether to go has been checked
+            var toGoBox = $("#order-togo", evt.target);
+            var isTOGO = false;
+            if( toGoBox.is(":checked") )
+                isTOGO = true;
             //first create our ajax payload
             var orderRecipes = {
-                tablenumber : SETTINGS.getTableNumber(),
                 recipes : new Array()
             };
             for( var i in foodcartRecipes ) {
                 var recipe = foodcartRecipes[i].getRecipe();
                 orderRecipes.recipes.push( recipe );
             }
+            //only add the tablenumber if it's not to-go
+            if( isTOGO == false )
+                orderRecipes.tablenumber = SETTINGS.getTableNumber()
 
             var retryEvent;
             //This seems to be required.

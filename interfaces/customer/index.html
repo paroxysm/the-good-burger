@@ -14,6 +14,7 @@
     <script src="scripts/menupagebrowser.js"></script>
     <script src="scripts/foodcart.js"></script>
     <script src="scripts/postorder.js"></script>
+    <script src="scripts/index.js"></script>
 
 
     <script src="scripts/jqm.js"></script>
@@ -34,13 +35,38 @@
     <div data-role="content">
         <div id="advertisment-space" class="loading"></div>
         </br>
-        <div class="ui-grid-a">
+        <div class="ui-grid-b">
             <div class="ui-block-a">
-                <a href="menu.html" data-role="button" data-theme="b">Place Order</a>
+                <a href="#wait-for-menus" data-role="button" data-theme="b">Place Order</a>
             </div>
             <div class="ui-block-b">
                 <a href="#" data-role="button">Call Waiter to Place Order</a>
             </div>
+            <div class="ui-block-c">
+                <a href="#configure-settings" data-role="button">Settings</a>
+            </div>
+        </div>
+    </div>
+
+    <div data-role="subpage" id="wait-for-menus">
+
+    </div>
+
+    <div data-role="subpage-dialog" id="configure-settings">
+        <header data-role="header" data-theme="c">
+            <h4>Settings</h4>
+        </header>
+        <div data-role="content">
+            <label>
+                <span>Back End Url :</span>
+                <input type="text" data-bind="value : url"/>
+            </label>
+            <label>
+                <span>Table Number :</span>
+                <input type="number" data-bind="value : tablenumber"/>
+            </label>
+            <a href="#" data-role="button" data-inline="true" data-theme="b" data-rel="back" data-bind="event: { tap : Save }">Save</a>
+            <a href="#" data-role="button" data-inline="true" data-bind="event: { tap : Reset}">Defaults</a>
         </div>
     </div>
 </div>

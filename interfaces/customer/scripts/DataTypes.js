@@ -171,6 +171,8 @@ function Order() {
     this.recipes = new Array();
     this.total = 0;
     this.coupon = false;
+    this.status = null;
+    this.isToGo = false;
 
     this.getID = function() { return this.id; }
     this.setID = function(id) { this.id = id; return this; }
@@ -194,6 +196,16 @@ function Order() {
     this.setTotal = function(total) { this.total = total; }
 
     this.getRecipes = function() { return this.recipes; }
+
+    this.getStatus = function() { return this.status; }
+    this.setStatus = function(status) { this.status = status; }
+
+    this.isPending = function() { return this.status == 'placed'; }
+    this.isPaid = function() { return this.status == 'paid'; }
+    this.isReady = function() { return this.status == 'ready'; }
+
+    this.isPickup = function() { return this.isToGo; }
+    this.setIsPickup = function() { this.isToGo = true; }
 
 };
 
