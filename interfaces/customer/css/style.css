@@ -41,10 +41,10 @@
 #advertisment-space {
     width : 100%;
     height : 300px;
-    border-radius: 5px;
+    /*border-radius: 5px;
     border-color: #000000;
     border-width: 1px;
-    border-style: solid;
+    border-style: solid;*/
     /*background-color: #000000;*/
     /*display : inline-block;*/
 }
@@ -230,4 +230,42 @@
     background-size: 20px 20px;
     background-repeat: no-repeat;
     background-position: left;
+}
+
+@-webkit-keyframes rotatingburger {
+    11% { -webkit-transform : rotateY(5deg); }
+    22% { -webkit-transform : rotateY(20deg); }
+    33% { -webkit-transform : rotateY(40deg); }
+    44% { -webkit-transform : rotateY(60deg); }
+    55% { -webkit-transform : rotateY(80deg); }
+    66% { -webkit-transform : rotateY(100deg); }
+    77% { -webkit-transform : rotateY(120deg); }
+    88% { -webkit-transform : rotateY(140deg); }
+    99% { -webkit-transform : rotateY(180deg); }
+}
+.rotatingBurger {
+    background-image: url("../res/burger.png");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size :300px 260px;
+    height : 260px;
+    /*width: 300px;*/
+    /*-webkit-animation-name : rotatingburger;
+    -webkit-animation-duration : 500ms;
+    -webkit-animation-iteration-count : infinite;
+    -webkit-animation-direction : alternate;
+    -webkit-animation-play-state : running;*/
+}
+
+.homepagebanner {
+    text-align: center;
+}
+.recipe-calories {
+    font-weight : bold;
+    font-family: "Lucida Console", Monaco, monospace;
+}
+.invalid-login {
+    color : red;
+    font-weight : bold;
+    font-family: "Lucida Console", Monaco, monospace;
 }

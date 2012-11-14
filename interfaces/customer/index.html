@@ -30,20 +30,23 @@
 <body>
 <div data-role="page" id="home">
     <header data-role="header" data-theme="c">
-        <h1>The Good Burger</h1>
+        <a href="#log-in" data-role="button" data-icon="gear" data-theme="b" data-iconpos="notext" class="ui-btn-right" data-rel="popup" data-position-to="window">Settings</a>
+        <!--<h1>The Good Burger</h1>-->
     </header>
     <div data-role="content">
-        <div id="advertisment-space" class="loading"></div>
+        <div id="advertisment-space" >
+            <div class="ui-grid-solo homepagebanner">
+                <h1>The Good Burger</h1>
+            </div>
+            <div class="ui-grid-solo rotatingBurger"></div>
+            </div>
         </br>
-        <div class="ui-grid-b">
+        <div class="ui-grid-a">
             <div class="ui-block-a">
                 <a href="#wait-for-menus" data-role="button" data-theme="b">Place Order</a>
             </div>
             <div class="ui-block-b">
-                <a href="#" data-role="button">Call Waiter to Place Order</a>
-            </div>
-            <div class="ui-block-c">
-                <a href="#configure-settings" data-role="button">Settings</a>
+                <a href="#call-waiter-to-order" data-role="button" data-rel="popup" data-position-to="window">Call Waiter to Place Order</a>
             </div>
         </div>
     </div>
@@ -52,22 +55,46 @@
 
     </div>
 
-    <div data-role="subpage-dialog" id="configure-settings">
+    <div data-role="subpage-dialog" id="configure-settings" data-prefetch>
         <header data-role="header" data-theme="c">
             <h4>Settings</h4>
         </header>
         <div data-role="content">
-            <label>
-                <span>Back End Url :</span>
-                <input type="text" data-bind="value : url"/>
-            </label>
-            <label>
-                <span>Table Number :</span>
-                <input type="number" data-bind="value : tablenumber"/>
-            </label>
+            <ul data-role="listview" data-inset="true">
+                <li>
+                    <label>
+                        <span>Server Location:</span>
+                        <input type="text" data-bind="value : url"/>
+                    </label>
+                </li>
+                <li>
+                    <label>
+                        <span>Table Number :</span>
+                        <input type="number" data-bind="value : tablenumber"/>
+                    </label>
+                </li>
+            </ul>
+
             <a href="#" data-role="button" data-inline="true" data-theme="b" data-rel="back" data-bind="event: { tap : Save }">Save</a>
             <a href="#" data-role="button" data-inline="true" data-bind="event: { tap : Reset}">Defaults</a>
         </div>
+    </div>
+    <div data-role="popup" data-theme="c" data-overlay-theme="a" id="call-waiter-to-order" data-shadow="true" data-corners="true" class="ui-content">
+        <p>A waiter has been requested and will be with you shortly!</p>
+    </div>
+    <div data-role="popup" data-theme="d" data-overlay-theme="a" id="log-in" class="ui-content">
+        <p class="invalid-login" data-bind="visible: !loginAttempts()">Too many incorrect tries!</br>Try again in 3 minutes.</p>
+        <ul data-role="listview" data-bind="visible : loginAttempts()">
+            <li data-role="fieldcontain">
+                <label>Username: <input type="text" data-bind="value : username"/></label>
+            </li>
+            <li data-role="fieldcontain">
+                <label>Password : <input type="password" data-bind="value : password"></label>
+            </li>
+            </ul>
+        <p class="invalid-login" data-bind="visible : isInvalid() && loginAttempts() ">You're login credentials are invalid!</p>
+        <a href="#" data-role="button" data-theme="b" data-bind="event: { tap : authenticate }, visible : loginAttempts()">Login</a>
+        <a href="#" data-role="button" data-theme="c" data-rel="back" data-bind="visible : loginAttempts() ">Cancel</a>
     </div>
 </div>
 </body>

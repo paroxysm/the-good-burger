@@ -266,10 +266,11 @@
             //set the calories
             var caloriesElement = $(".menuitem-calories", contentClone );
             caloriesElement.text( recipe.getCalories().toFixed(2) );
+            caloriesElement.addClass("recipe-calories");
             //set the image
-            var imgSpace = $('.menuitem-image', contentClone);
-            imgSpace.addClass("loading");
-//            imgSpace.css("content :\""+recipe.getName()+"\"");
+            var imgSpace = $('.menuitem-image img', contentClone);
+            imgSpace.attr('src', recipe.picture );
+//           imgSpace.css("content :\""+recipe.getName()+"\"");
             //set the description
             var descriptionSpace = $('.menuitem-description', contentClone);
             descriptionSpace.text("This is a description for menu item "+recipe.getName() );

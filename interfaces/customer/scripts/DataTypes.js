@@ -48,6 +48,7 @@ function Recipe( asJSON ) {
     this.description = null;
     this.refillable = null;
     this.id = null;
+    this.picture = null;
 
     /* Handle data coming in from JSON */
     if( asJSON ) {
@@ -56,6 +57,7 @@ function Recipe( asJSON ) {
         this.description = asJSON.description;
         this.refillable = asJSON.refillable;
         this.id = asJSON.id;
+        this.picture = asJSON.picture;
 
         for(var i in asJSON.ingredients ) {
             this.ingredients.push( new Ingredient( asJSON.ingredients[i] ) );

@@ -39,4 +39,71 @@ PECR.registerCallback("wait-for-menus", "pageshow", function(event) {
         $.mobile.loading('hide');
         $.mobile.changePage("menu.html");
     });
-})
+});
+
+PECR.registerCallback("home", "pagecreate", function(event) {
+
+    var AuthenticateUserVM;
+    var Context = $(event.target);
+    var settingsPage;
+
+    PECR.registerCallback("home", "pageshow", function()
+    {
+        settingsPage = $("#configure-settings");
+        if( !settingsPage.length) throw new Error("#configure-settings is missing!");
+
+        if( !AuthenticateUserVM ) {
+
+            function AuthenticateUserViewModel() {
+                var MASTER_USER = "master";
+                var MASTER_PASSWORD = "winning";
+
+                var self = this;
+                self.username = ko.observable('');
+                self.password = ko.observable('');
+                self.isInvalid = ko.observable(false);
+                self.loginAttempts = ko.observable(3);
+
+                self.authenticate = function() {
+                    if( self.username() != MASTER_USER || self.password() != MASTER_PASSWORD )
+                    {
+                        self.isInvalid(true);
+                        window.setTimeout( self.resetIsInvalid, 3000);
+                        self.loginAttempts( self.loginAttempts() - 1);
+                        if( !self.loginAttempts() ) {
+                            console.log("You're out of tries!");
+                            $.mobile.changePage(Context);
+                            window.setTimeout( self.resetLoginAttempts, 180000); //reset attempts in 3mins
+                        }
+                    }
+                    else {
+                        $.mobile.changePage(  settingsPage );
+                        //clear user/pass fields
+                        self.username('');
+                        self.password('');
+                    }
+
+
+                }
+
+                self.resetIsInvalid = function() {
+                    self.isInvalid(false);
+                }
+                self.resetLoginAttempts = function() {
+                    self.loginAttempts(3);
+                    console.log("Resetted login attempts!");
+                }
+            }
+
+
+            //Bind authenticate popup to the VM
+            var authenticatePopup = $("#log-in", Context);
+            if( !authenticatePopup.length ) throw new Error("Our authenticate popup is missing!");
+            AuthenticateUserVM = new AuthenticateUserViewModel();
+            ko.applyBindings( AuthenticateUserVM, authenticatePopup[0] );
+        }
+
+    });
+
+
+});
