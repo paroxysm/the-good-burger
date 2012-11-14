@@ -6,15 +6,18 @@
  * To change this template use File | Settings | File Templates.
  */
 
-
+/* Functionality for #configure-settings screen.
+    and text and password fields are used to change table number and server location.
+ */
 PECR.registerCallback("configure-settings", "pagecreate", function(event) {
 
     //create our view model
 
     function SettingsViewModel() {
         var self = this;
-
+        //The url of the backend server, it's where we send our ajax calls to.
         self.url = ko.observable( SETTINGS.getControllerURL() );
+        //an observable that becomes false when the entered url is invalid.
         self.urlIsValid = ko.observable(true);
         self.tablenumber = ko.observable( SETTINGS.getTableNumber() );
         self.tablenumberIsValid = ko.observable(true);
@@ -34,7 +37,7 @@ PECR.registerCallback("configure-settings", "pagecreate", function(event) {
 });
 
 PECR.registerCallback("wait-for-menus", "pageshow", function(event) {
-    $.mobile.loading('show', { text : "Please wait, menus are being fetched..." } );
+    $.mobile.loading('show', { text : "Fetching menus...", textVisible : true} );
     MenuMgr.fetchMenus( function() {
         $.mobile.loading('hide');
         $.mobile.changePage("menu.html");
@@ -82,8 +85,6 @@ PECR.registerCallback("home", "pagecreate", function(event) {
                         self.username('');
                         self.password('');
                     }
-
-
                 }
 
                 self.resetIsInvalid = function() {

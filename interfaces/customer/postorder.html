@@ -55,6 +55,7 @@
                     <span  class="ui-li-aside foodcartprice foodcartpricetotal" data-bind="text : total"></span>
                 </li>
             </ul>
+            </br>
             <ul data-role="listview" data-inset="true">
                 <li data-role="list-divider">
                     Total Calories
@@ -138,7 +139,7 @@
             <h1>Request Refills</h1>
         </header>
         <div data-role="content">
-            <p data-bind="visible : refillables.length == 0">You need refillable items in your order.</p>
+            <p data-bind="visible : refillables.length == 0" class="lucida-bold">You need refillable items in your order.</p>
             <div data-bind="visible : refillables.length > 0">
                 <h4>Refill Status :
                     <span class="refill-status" data-bind="text : refillStatus"></span>

@@ -11,7 +11,18 @@
 
     /* Listen for pagecreate to initialize our dynamic menus */
     PECR.registerCallback("menu", "pagecreate", initialize);
-    PECR.registerCallback("menu", "pagebeforeshow", function() { showMenuDOM(currentVisibleMenu, MenuPageContext); });
+    PECR.registerCallback("menu", "pagebeforeshow", function() {
+        showMenuDOM(currentVisibleMenu, MenuPageContext);
+    });
+    PECR.registerCallback("menu", "pageshow", function() {
+
+        var foodCartCanvas = $('.foodcart', MenuPageContext );
+        var recipeContentCanvas = $('.primary', MenuPageContext);
+        var recipeListCanvas = $('.secondary', MenuPageContext);
+        var heightToSet = Math.max( recipeContentCanvas.height(), recipeListCanvas.height() );
+        foodCartCanvas.height( heightToSet );
+        foodCartCanvas.css('maxheight', heightToSet);
+    });
 
     var currentVisibleMenu = null;
     var currentVisibleRecipe = null;
@@ -21,6 +32,7 @@
 
         //Set our page context
         MenuPageContext = $(evt.target );
+
         populateMenuNavList(evt, page);
 
         //Add functionality for the clear food cart button at the footer section
@@ -266,7 +278,7 @@
             //set the calories
             var caloriesElement = $(".menuitem-calories", contentClone );
             caloriesElement.text( recipe.getCalories().toFixed(2) );
-            caloriesElement.addClass("recipe-calories");
+            caloriesElement.addClass("lucida-bold");
             //set the image
             var imgSpace = $('.menuitem-image img', contentClone);
             imgSpace.attr('src', recipe.picture );
@@ -497,11 +509,7 @@
         ko.applyBindings( gVM, GameScreen[0] );
     });
 
-    PECR.registerCallback("chance-game", "pagehide", function(event) {
-        //they've played the game, send them to post order.
-        $.mobile.changePage("postorder.html");
-    });
-    /* Game View Model */
+    /* Game View Model  */
     function GameViewModel() {
         var self = this;
         self.burgers = [
@@ -522,11 +530,17 @@
             if( self.gameOutcome() == 'WIN!') {
                 OrderManager.getOrder().addCoupon();
             }
+            return true;
+        }
+        self.resetPlayed = function() {
+            //make it timed so that it resets this after chance game page has been hidden
+            window.setTimeout( function() {
+                self.played(false);
+            }, 2000);
         }
         self.gameOutcome = ko.observable();
         self.played = ko.observable(false);
         self.outcomeMarkup = ko.computed( function() {
-            console.log("Arguments is :"+arguments);
             var outCome = self.gameOutcome();
             if( outCome == 'WIN!')
                 return 'game-win';
