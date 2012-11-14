@@ -183,6 +183,26 @@
 
         //What type of payment the user has selected
         self.selectedType = ko.observable(null);
+        self.selectedTypeListener = ko.computed( {
+            read : function() { return self.selectedType(); },
+            write:  function(value) {
+                self.selectedType(value);
+                //If the selected type is coupon, check which recipes support coupon and use the highest cost dessert
+                if( self.isCouponSelected() ) {
+                    var recipes = self.ourOrder.getRecipes();
+                    var maxPrice = 0.0;
+                    for( var i in  recipes ) {
+                        if( recipes[i].supportsCoupon() ) {
+                            maxPrice = Math.max( maxPrice, parseFloat(recipes[i].getPrice() ) );
+                        }
+                    }
+                    //update the payment amount to 'maxPrice'
+                    if( maxPrice > 0.0 ) {
+                        self.paymentAmount(maxPrice );
+                    }
+                }
+            }
+        })
         self.isCardSelected = ko.computed( function() { return self.selectedType() == "CREDIT CARD"; } );
         self.isECheckSelected = ko.computed( function() { return self.selectedType() == "E-CHECK"; } );
         self.isCouponSelected = ko.computed( function() { return self.selectedType() == "COUPON"; } );
@@ -308,34 +328,22 @@
             self.requestStatus( STATUS.WAITER_STATUS_PENDING );
             var tableNumber = SETTINGS.getTableNumber();
             //place ajax call w/ our payload
-            var data = {
-                request_type : ajaxDriver.REQUESTS.REQUEST_WAITER,
-                payload : {
-                    tablenumber : tableNumber
-                }
+            var payload = {
+                    tablenumber : tableNumber,
+                    orderid : OrderManager.getOrder().getID()
             };
-            ajaxDriver.call( ajaxDriver.REQUESTS.REQUEST_WAITER, data, function(payload) {
-                for( var i in payload ) {
-                    var menuAsJson = payload[i];
-                    var recipesInMenu = menuAsJson['recipes'];
-                    for( var j in recipesInMenu ) {
-                        var recipeAsJson = recipesInMenu[j];
+            ajaxDriver.call( ajaxDriver.REQUESTS.REQUEST_WAITER, payload, function(payload) {
 
-                        var ingredientsInRecipe = recipesInMenu[i]
-                    }
-                }
                 console.log("Waiter has been requested!");
                 ///Register the interval event
                 var pollEvent = window.setInterval( periodicStatusPoll, 10000);
                 function periodicStatusPoll() {
                     //request the status of the waiter
-                    var data = {
-                        request_type : ajaxDriver.REQUESTS.REQUEST_WAITER_STATUS,
-                        payload : {
-                            tablenumber : tableNumber
-                        }
+                    var payload = {
+                            tablenumber : tableNumber,
+                            orderid : OrderManager.getOrder().getID()
                     };
-                    ajaxDriver.call( ajaxDriver.REQUESTS.REQUEST_WAITER_STATUS, data, function(data) {
+                    ajaxDriver.call( ajaxDriver.REQUESTS.REQUEST_WAITER_STATUS, payload, function(data) {
                         var status = data.status;
                         self.requestStatus( status );
                         console.log("Request Waiter Status has yieled [%s]",status);

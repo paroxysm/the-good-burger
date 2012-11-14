@@ -49,6 +49,7 @@ function Recipe( asJSON ) {
     this.refillable = null;
     this.id = null;
     this.picture = null;
+    this.couponSupport = null;
 
     /* Handle data coming in from JSON */
     if( asJSON ) {
@@ -58,6 +59,7 @@ function Recipe( asJSON ) {
         this.refillable = asJSON.refillable;
         this.id = asJSON.id;
         this.picture = asJSON.picture;
+        this.couponSupport = asJSON.coupon == 'true' ? true : false;
 
         for(var i in asJSON.ingredients ) {
             this.ingredients.push( new Ingredient( asJSON.ingredients[i] ) );
@@ -75,6 +77,8 @@ function Recipe( asJSON ) {
 
     this.getDescription = function() { return this.description; }
     this.setDescription = function(descr ) { this.description = descr; return this; }
+
+    this.supportsCoupon = function() { return this.couponSupport; }
 
     /* How we add ingredients */
     this.addIngredient = function(ingredient) {

@@ -101,7 +101,7 @@
             </ul>
             <div class="ui-grid-a">
                 <div class="ui-block-a" id="payment-types">
-                    <label data-bind="visible : totalAmountLeft() > 0.0">Amount :<input type="number" data-bind="value : guardedPaymentAmount "/></label>
+                    <label data-bind="visible : totalAmountLeft() > 0.0">Amount :<input type="number" data-bind="value : guardedPaymentAmount, disable : isCouponSelected"/></label>
                     </br>
                     <select data-bind="options : allowedTypes, value : selectedType, optionsCaption : 'Select payment:', disable : totalAmountLeft() <= 0">
                     </select>
