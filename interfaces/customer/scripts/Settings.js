@@ -9,7 +9,7 @@
 var SETTINGS = function($) {
     var tableNumber = 5;
     var phase = null; //Stores the phase that the customer is currently.
-    var controllerUrl = null;
+    var controllerUrl = "http://students.cse.unt.edu/~nac0072/4444/backend/controller/controller.php";
     //perform jqm customization here
     $(document).bind("mobileinit", function() {
         console.log("[DEBUG] configuring jqm!");
@@ -23,7 +23,7 @@ var SETTINGS = function($) {
         setTableNumber : function(number) { tableNumber = number; },
         getPhase : function() { return phase; },
         setPhase : function(newphase) { phase = newphase; },
-        getControllerURL  : function() { return "http://students.cse.unt.edu/~nac0072/4444/backend/controller/controller.php"; },
+        getControllerURL  : function() { return controllerUrl; },
         setControllerURL : function(url) { controllerUrl = url; return this; }
     };
 }(jQuery);
