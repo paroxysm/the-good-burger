@@ -55,6 +55,8 @@ var PECR = function($) {
                         callbacks[idx].getCallback().apply(null, arguments );
                 }
             }
+            else {}
+                //console.log("What the what?!");
         });
     }
 
