@@ -6,15 +6,31 @@
  * To change this template use File | Settings | File Templates.
  */
 ( function($) {
-    // ENUMERATIONS
+    // Status ENUMERATIONS as numbers in the form of Strings.
     var STATUS = {
-        WAITER_STATUS_SERVED : 'serviced',
-        WAITER_STATUS_PENDING : 'pending'
+        PLACED : 3,
+        READY  : 4,
+        PAID : 5,
+        OPEN  : 6,
+        OCCUPIED : 7,
+        PENDING : 8,
+        SERVED : 9
+    }
+    var STATUS_TEXT = {
+        3 : "Order is Cooking",
+        4 : "Ready",
+        5 : "Paid",
+        6  : "Open",
+        7  : "Occupied",
+        8 : "Pending",
+        9  : "Served",
+        0 : "Closed"
     }
     var MainContext = null; //Stores the page ( div[date-role='page'] when the page is first created
     var RefillScreen = null;
     var PaymentScreen = null;
     var GameScreen = null;
+    var newsFeedPanel = null;
 
     //cache the MainContext when post order page is first created
     PECR.registerCallback("post-order", "pagecreate", function(evt) {
@@ -28,6 +44,11 @@
         var orderStatusWrapper = $("#order-status-wrapper", MainContext );
         if( !orderStatusWrapper.length ) throw new Error("#order-status-wrapper is non existent!");
         ko.applyBindings( new OrderStatusViewModel(), orderStatusWrapper[0] );
+
+        //Bind news feed to VM
+        newsFeedPanel = $(".newsfeed-panel", MainContext);
+        if( !newsFeedPanel.length) throw new Error(".newsfeed-panel is missing!");
+        ko.applyBindings( new NewsFeedViewModel(), newsFeedPanel[0] );
 
         displayConfirmedOrder();
     });
@@ -50,11 +71,6 @@
         ko.applyBindings( new RefillScreenViewModel(), RefillScreen[0]);
 
     });
-
-    /*//functionality for displaying the confirmed ordered items once they have placed the order
-    PECR.registerCallback("post-order", "pagebeforeshow", displayConfirmedOrder);*/
-
-
 
     /* Called to create markup for showing the confirmed ordered items in a 'ul' with an id of 'confirmed-cart' */
     function displayConfirmedOrder( ) {
@@ -93,15 +109,23 @@
         var self = this;
 
         self.order = OrderManager.getOrder();
-        self.order.setStatus('placed');
+        self.order.setStatus( STATUS.PLACED );
         self.orderStatus = ko.observable( self.order.getStatus() ); //Stores the status of our order
         /* Returns the css class that corresponds to our order status */
         self.orderStatusMarkup = ko.computed( function() {
             var status = self.orderStatus();
-            if( status == 'placed')
+            if( status == STATUS.PLACED)
                 return "pending";
-            else if( status == 'ready' || status == 'paid')
+            else if( status == STATUS.READY || status == STATUS.PAID )
                 return "approved";
+        });
+        //what to show to the user
+        self.orderStatusText = ko.computed( function() {
+            return STATUS_TEXT[ self.orderStatus() ];
+        });
+        //set when the order is paid
+        self.isPaid = ko.computed( function() {
+            return self.orderStatus() == STATUS.PAID;
         });
 
         //Register our ajax poll event
@@ -117,7 +141,7 @@
                 self.orderStatus( status );
                 self.order.setStatus(status);
                 console.log("REQUEST_ORDER_STATUS yielded [%s]", status);
-                if( status == 'paid' ) {
+                if( status == STATUS.PAID ) {
                     console.log("Order has been paid!");
                     window.clearInterval(pollEvent );
                 }
@@ -269,7 +293,7 @@
                 ajaxDriver.call( ajaxDriver.REQUESTS.REQUEST_CHARGE_STATUS, { orderid: self.ourOrder.getID() }, function(data) {
                     console.log("REQUEST_CHARGE_STATUS yielded '%s'", data.status);
                     self.paymentStatus( data.status );
-                    if( data.status  == 'paid') {
+                    if( data.status  == STATUS.PAID ) {
                         console.log("REQUEST_CHARGE_STATUS order has been paid!");
                         window.clearInterval(pollId );
                     }
@@ -280,10 +304,18 @@
         /* True when the order has been submitted */
         self.submitted = ko.observable(false);
         /* Holds the last payment status */
-        self.paymentStatus = ko.observable('Pending');
+        self.paymentStatus = ko.observable( STATUS.PENDING );
+        //What is shown to the user
+        self.paymentStatusText = ko.computed( function() {
+            return STATUS_TEXT[ self.paymentStatus() ];
+        })
         self.paymentMarkupClass = ko.computed(function() {
-            var paymentstatus = self.paymentStatus().toLowerCase();
-            var paymentClass = "payment-"+paymentstatus;
+            var paymentstatus = self.paymentStatus();
+            var paymentClass;
+            if( self.paymentStatus() == STATUS.PENDING )
+                paymentClass = "payment-pending";
+            else if( self.paymentStatus() == STATUS.PAID )
+                paymentClass = "payment-paid";
             return paymentClass;
         });
 
@@ -312,11 +344,14 @@
         var self = this;
 
         self.requestStatus = ko.observable();
+        self.requestStatusText = ko.computed( function() {
+            return STATUS_TEXT[ self.requestStatus() ];
+        })
         self.requestStatusMarkupClass = ko.computed( function() {
             var status = self.requestStatus();
-            if( status == STATUS.WAITER_STATUS_SERVED )
+            if( status == STATUS.SERVED )
                 return 'waiter-request-serviced';
-            else if ( status == STATUS.WAITER_STATUS_PENDING )
+            else if ( status == STATUS.PENDING )
                 return 'waiter-request-pending';
             else
                 return null;
@@ -325,7 +360,7 @@
         self.requestWaiter = function() {
             console.log("requesting Waiter....");
             //make the status pending
-            self.requestStatus( STATUS.WAITER_STATUS_PENDING );
+            self.requestStatus( STATUS.PENDING );
             var tableNumber = SETTINGS.getTableNumber();
             //place ajax call w/ our payload
             var payload = {
@@ -346,8 +381,8 @@
                     ajaxDriver.call( ajaxDriver.REQUESTS.REQUEST_WAITER_STATUS, payload, function(data) {
                         var status = data.status;
                         self.requestStatus( status );
-                        console.log("Request Waiter Status has yieled [%s]",status);
-                        if( status == STATUS.WAITER_STATUS_SERVED )
+                        console.log("Request Waiter Status has yielded [%s]",status);
+                        if( status == STATUS.SERVED )
                             window.clearInterval( pollEvent );
                     });
                 }
@@ -369,21 +404,24 @@
                 self.refillables.push(  recipes[i] );
         }
 
-        self.refillStatus = ko.observable("not requested");
+        self.refillStatus = ko.observable();
+        self.refillStatusText = ko.computed( function (){
+            if( !self.refillStatus() )
+                return "Not Requested";
+            else
+                return STATUS_TEXT[ self.refillStatus() ];
+        });
         self.refillStatusMarkupClass = ko.computed( function() {
-            if( self.refillStatus() == 'pending' )
+            if( self.refillStatus() == STATUS.PENDING )
                 return "pending";
-            else if( self.refillStatus() == "served")
+            else if( self.refillStatus() == STATUS.SERVED )
                 return "approved";
         });
-
-        self.resetStatus = function() { self.refillStatus('not requested'); }
-        self.pendingStatus = function() { self.refillStatus('pending'); }
 
         self.requested = ko.observable('false');
 
         self.submitRequest = function() {
-            self.pendingStatus(); //mark status as pending
+            self.refillStatus( STATUS.PENDING ); //mark status as pending
             //get a list of recipes that we have selected
             var selectedRecipes = $("input:checked", RefillScreen );
             var checkedRecipes = new Array();
@@ -418,7 +456,7 @@
                     ajaxDriver.call( ajaxDriver.REQUESTS.REQUEST_REFILL_STATUS, payload, function(data) {
                         console.log("Refill Status for orderid : %s is %s", data.status);
                         self.refillStatus( data.status );
-                        if( data.status == 'served') {
+                        if( data.status == STATUS.SERVED ) {
                             console.log("Refill status has been serviced, event has been removed!");
                             window.clearInterval( pollEvent );
                         }
@@ -436,7 +474,6 @@
     });
 
     function PlaceNewOrderViewModel() {
-
         var self = this;
         //The user has confirmed that they want to start over, clear the food cart
         self.Confirm = function() {
@@ -444,6 +481,38 @@
             console.log("User has confirmed, clearing food cart!");
             return true;
         }
+    }
+
+    //News feed View Model
+    function NewsFeedViewModel() {
+        var self = this;
+
+        self.selectedHeadline = ko.observable();
+        self.categories = ko.observableArray();
+
+        //request news feed when created.
+        ajaxDriver.call( ajaxDriver.REQUESTS.REQUEST_NEWSFEED, null, function( payload ) {
+            console.log("Receiving news feed");
+            populateHeadlines(payload );
+        }, Retry );
+
+        function Retry() {
+            console.log("RE-Requesting newsfeed!");
+            ajaxDriver.call( ajaxDriver.REQUESTS.REQUEST_NEWSFEED, null, populateHeadlines, Retry);
+        }
+        function populateHeadlines ( payload ) {
+            //add each category to the observable array
+            for(var i in payload ) {
+                self.categories.push( payload[i] );
+            }
+            //refresh listview
+            $("ul", newsFeedPanel).listview("refresh");
+            console.log("Feed has been recieved, populating!");
+        }
+        self.openHeadline = function( headline ) {
+            self.selectedHeadline( headline );
+            console.log("Opening video");
+        };
     }
 
 })(jQuery);
@@ -454,7 +523,7 @@ ajaxDriver.registerMockCallbackForType(ajaxDriver.REQUESTS.REQUEST_WAITER, funct
 });
 ajaxDriver.registerMockCallbackForType(ajaxDriver.REQUESTS.REQUEST_WAITER_STATUS, function(data) {
     console.log("REQUEST_WAITER call has been intercepted with table number %s", data.payload.tablenumber);
-    var status = ["Pending", "Served", "Acknowledged!"];
+    var status = [STATUS.PENDING, STATUS.SERVED ];
     var randomStatusIdx = Math.floor( Math.random() * 2 );
     console.log("REQUEST_WATER returning status %s", status[randomStatusIdx]);
     return { status : status[randomStatusIdx] };

@@ -31,7 +31,7 @@ function TableViewViewModel($) {
             var orderid = tablestatus.getOrder().getID();
             var payload = {
                 orderid : orderid,
-                newstatus : 'served'
+                newstatus : STATUS.SERVED
             }
             tablestatus.refillstatus('served');
             ajaxDriver.call(ajaxDriver.REQUESTS.UPDATE_REFILLREQUEST, payload, function () {
@@ -54,7 +54,7 @@ function TableViewViewModel($) {
             var orderid = tablestatus.getOrder().getID();
             var payload = {
                 orderid : orderid,
-                newstatus : 'serviced'
+                newstatus : STATUS.SERVED
             }
             tablestatus.waiterstatus('serviced');
             ajaxDriver.call(ajaxDriver.REQUESTS.UPDATE_WAITERREQUEST, payload, function() {
@@ -66,7 +66,7 @@ function TableViewViewModel($) {
             var orderid = tablestatus.getOrder().getID();
             var payload = {
                 orderid : orderid,
-                newstatus : 'ready'
+                newstatus : STATUS.READY
             }
             ajaxDriver.call( ajaxDriver.REQUESTS.ORDER_RETRIEVED, payload, function(data) {
                 console.log("Order was retrieved!");
@@ -78,6 +78,17 @@ function TableViewViewModel($) {
             $.mobile.changePage( VIEWORDER_DIALOG );
             VIEWORDER_DIALOG.trigger('create');
             $("ul", VIEWORDER_DIALOG).listview('refresh'); //this is required
+        }
+
+        column.clearTable = function( tablestatus ) {
+            console.log("Clearing table %s", tablestatus.tablenumber );
+            var payload  = {
+                id : tablestatus.order.id
+            }
+            ajaxDriver.call( ajaxDriver.REQUESTS.CLEAR_TABLE, payload, function() {
+                console.log("Table %s has been cleared!", tablestatus.tablenumber);
+
+            });
         }
     };
 
@@ -96,9 +107,9 @@ function TableViewViewModel($) {
         //start off w/ the first column
         var currentColumn;
         var columnCounter=1 ;
-        var blocks = [ "ui-block-a", "ui-block-b", "ui-block-c", "ui-block-d"];
+        var blocks = [ "ui-block-a", "ui-block-b", "ui-block-c"];
         for(var i = 1; i <= 24; ++i) {
-            if( i % 6 == 1 ) { //After we process every 6th table, we create a column to store the next 6 tables, and add it to our list of columns
+            if( i % 8 == 1 ) { //After we process every 6th table, we create a column to store the next 6 tables, and add it to our list of columns
                 currentColumn = new StatusColumn();
                 currentColumn.name = "Sector"+columnCounter;
                 currentColumn.block = blocks [ self.columns().length ]; //assign a block depending on the size of already cached columns
@@ -114,7 +125,7 @@ function TableViewViewModel($) {
 
              currentColumn.tables.push( tableStatus );
         }
-        console.log("Created %u columns!", self.columns().length );
+        console.log("Created %d columns!", self.columns().length );
 
         $.mobile.loading('hide'); //hide page loading widget
         //Form jqm to enhance our now new markup
@@ -128,7 +139,7 @@ function TableViewViewModel($) {
 
         var pollEvent = window.setInterval( function() {
             ajaxDriver.call( ajaxDriver.REQUESTS.TABLES_STATUS, null, onSuccess, onError );
-        }, 5000); //Update tables every 5 seconds.
+        }, 2000); //Update tables every 5 seconds.
 
         /* Once we have our new tables statuses, call update on each status */
         function onSuccess( tables ) {
@@ -198,10 +209,7 @@ function TableViewViewModel($) {
                 order.addRecipe( editedRecipes[i] );
             }
             //place ajax call now
-            var payload = {
-                order : JSON.parse( JSON.stringify( order ) )
-            };
-            ajaxDriver.call(ajaxDriver.REQUESTS.PLACE_ORDER, payload, function() {
+            ajaxDriver.call(ajaxDriver.REQUESTS.UPDATE_ORDER, JSON.parse( JSON.stringify( order ) ), function() {
                 console.log("Order successfully edited!");
             });
             //Replace the current order w/ this one given to us

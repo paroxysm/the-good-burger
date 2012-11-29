@@ -5,6 +5,21 @@
  * Time: 10:14 AM
  * To change this template use File | Settings | File Templates.
  */
+
+// Status ENUMERATIONS as numbers in the form of Strings.
+var STATUS = {
+    PLACED : 3,
+    READY  : 4,
+    PAID : 5,
+    OPEN  : 6,
+    OCCUPIED : 7,
+    PENDING : 8,
+    SERVED : 9
+}
+var STATUS_TEXT = {
+
+}
+
 /* This class is at the low level that makes up menu items */
 function Ingredient( asJSON ) {
 
@@ -179,7 +194,7 @@ function Order( fromJSON ) {
     /* Construct an order from JSON data */
     if( fromJSON ) {
         this.id = fromJSON.id;
-        this.status = fromJSON.tablestatus;
+        this.status = fromJSON.status;
         if( fromJSON.recipes ) {
             fromJSON.recipes = JSON.parse( fromJSON.recipes ); //orders from back end come as json encoded strings
             for(var i in fromJSON.recipes) {
@@ -227,23 +242,26 @@ function TableStatus( fromJSON ) {
     var self = this;
     this.id = null;
     this.tablenumber = ko.observable(null);
-    this.tablestatus = ko.observable('open');
+    this.tablestatus = ko.observable(STATUS.OPEN);
     this.refillstatus = ko.observable(null);
     this.waiterstatus = ko.observable(null);
+    this.orderstatus = ko.observable(null);
     this.order = null;
 
-    this.isPaid = ko.observable(false);
+    this.isPaid = ko.computed( function() {
+        return self.orderstatus() == STATUS.PAID;
+    });
 
     this.needsRefill = ko.computed( function() {
         var refillStat = ko.utils.unwrapObservable(self.refillstatus);
-        return refillStat == 'pending';
+        return refillStat == STATUS.PENDING;
     });
     this.needsHelp = ko.computed( function() {
         var needsHelp = ko.utils.unwrapObservable(self.waiterstatus);
-        return needsHelp == 'pending';
+        return needsHelp == STATUS.PENDING;
     });
     this.hasOrder = ko.computed( function() {
-        return ko.utils.unwrapObservable( self.tablestatus) != 'open';
+        return ko.utils.unwrapObservable( self.tablestatus) != STATUS.OPEN;
     });
 
     this.getTableNumber = function() { return ko.utils.unwrapObservable( this.tablenumber ); }
@@ -262,6 +280,7 @@ function TableStatus( fromJSON ) {
             this.tablestatus( JSONData.tablestatus );
             if( JSONData.order ) {
                 this.order = new Order( JSONData.order );
+                this.orderstatus( this.order.status);
             }
         }
     }
@@ -271,7 +290,7 @@ function TableStatus( fromJSON ) {
 
     this.tableStatusIndicator = ko.computed( function() {
         var tablestatus = ko.utils.unwrapObservable(self.tablestatus);
-        if(  tablestatus == 'open')
+        if(  tablestatus == STATUS.OPEN )
             return 'Open';
         else
             return 'Closed';

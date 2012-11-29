@@ -101,10 +101,10 @@ var ajaxDriver = function($) {
         REQUESTS : {
             TABLES_STATUS : 'tables_status',
             UPDATE_ORDER : 'update_order',
-            PLACE_ORDER : 'place_order',
             ORDER_RETRIEVED : 'order_retrieved',
             UPDATE_WAITERREQUEST : 'update_waiter_request',
-            UPDATE_REFILLREQUEST : 'update_refill_request'
+            UPDATE_REFILLREQUEST : 'update_refill_request',
+            CLEAR_TABLE : "clear_table"
         },
         registerMockCallbackForType : function( requestType, mockCallback ) {
             registeredMockCallbacks.push( new MockEntry(requestType, mockCallback) );

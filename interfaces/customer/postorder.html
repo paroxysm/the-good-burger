@@ -31,40 +31,53 @@
     <div data-role="header" data-theme="c">
         <h3>Payment Screen</h3>
     </div>
-    <div data-role="content">
-        <div class="ui-grid-solo" id="order-status-wrapper">
-            <div class="ui-block-a">
-                <h4 class="ui-title">Order Status :
-                    <span data-bind="text : orderStatus"></span>
-                    <div data-bind="css : orderStatusMarkup"></div>
-                </h4>
+    <div data-role="content" class="ui-grid-a">
+        <div class="ui-block-a">
+            <div class="ui-grid-solo" id="order-status-wrapper">
+                <div class="ui-block-a">
+                    <h4 class="ui-title">Order Status :
+                        <div data-bind="css : orderStatusMarkup"></div>
+                        <span data-bind="text : orderStatusText"></span>
+                    </h4>
+                </div>
+            </div>
+
+            <div id="confirmed-cart">
+                <ul data-role="listview" data-inset="true">
+                    <li data-role="list-divider">Ordered Items</li>
+                    <!-- ko foreach : recipes -->
+                    <li>
+                        <span data-bind="text : $data.getName()"></span>
+                        <span class="ui-li-aside foodcartprice" data-bind="text : $data.getPrice()"></span>
+                    </li>
+                    <!-- /ko -->
+                    <li data-theme="e">
+                        Total
+                        <span  class="ui-li-aside foodcartprice foodcartpricetotal" data-bind="text : total"></span>
+                    </li>
+                </ul>
+                </br>
+                <ul data-role="listview" data-inset="true">
+                    <li data-role="list-divider">
+                        Total Calories
+                        <span class="ui-li-aside" data-bind="text: totalCalories"/>
+                    </li>
+                </ul>
+                <a href="#payment-screen" data-role="button" date-rel="dialog" data-theme="b">Pay Order</a>
             </div>
         </div>
-
-        <div id="confirmed-cart">
-            <ul data-role="listview" data-inset="true">
-                <li data-role="list-divider">Ordered Items</li>
-                <!-- ko foreach : recipes -->
+        <div class="ui-block-b newsfeed-panel">
+            <h4 class="ui-title">CNN NewsFeed</h4>
+            <ul data-role="listview" data-bind="foreach : categories">
+                <li data-role="list-divider" data-bind="text : name"></li>
+                <!-- ko foreach : headlines -->
                 <li>
-                    <span data-bind="text : $data.getName()"></span>
-                    <span class="ui-li-aside foodcartprice" data-bind="text : $data.getPrice()"></span>
+                    <a href="#" data-bind="text: text, event : { tap : $root.openHeadline }"></a>
                 </li>
                 <!-- /ko -->
-                <li data-theme="e">
-                    Total
-                    <span  class="ui-li-aside foodcartprice foodcartpricetotal" data-bind="text : total"></span>
-                </li>
-            </ul>
-            </br>
-            <ul data-role="listview" data-inset="true">
-                <li data-role="list-divider">
-                    Total Calories
-                    <span class="ui-li-aside" data-bind="text: totalCalories"/>
-                </li>
             </ul>
         </div>
         </br>
-        <a href="#payment-screen" data-role="button" date-rel="dialog" data-theme="b">Pay Order</a>
     </div>
     <footer data-role="footer" data-theme="c">
         <div data-role="navbar" data-iconpos="top">
@@ -126,8 +139,8 @@
             <a href="#" data-role="button" data-theme="c" data-icon="plus" data-bind="visible : totalAmountLeft() > 0 && selectedType() != undefined, click : addPayment">Add Payment</a>
             <a href="#" data-role="button" data-theme="b" data-bind="visible : totalAmountLeft() <= 0 && submitted() == false, event: { tap : submitPayment }" id="submit-payment">Submit Payment</a>
             <h4 data-bind="visible : submitted() == true" class="payment-status">Payment status :
-                <span data-bind="text : paymentStatus"></span>
                 <div data-bind="css: paymentMarkupClass"></div>
+                <span data-bind="text : paymentStatusText"></span>
             </h4>
             </div>
 
@@ -142,8 +155,8 @@
             <p data-bind="visible : refillables.length == 0" class="lucida-bold">You need refillable items in your order.</p>
             <div data-bind="visible : refillables.length > 0">
                 <h4>Refill Status :
-                    <span class="refill-status" data-bind="text : refillStatus"></span>
                     <div data-bind="css: refillStatusMarkupClass "></div>
+                    <span class="refill-status" data-bind="text : refillStatusText"></span>
                 </h4>
                 <ul data-role="listview" data-inset="true">
                     <li data-role="list-divider">New Refills</li>
@@ -172,6 +185,10 @@
                 <a href="#" data-rel="back" data-role="button" data-inline="true">No, I've changed my mind</a>
             </div>
         </div>
+    </div>
+
+    <div data-role="popup" id="view-headline" data-position-to="window" data-overlay-theme="a" data-theme="c">
+
     </div>
 </div>
 </body>

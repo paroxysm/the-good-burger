@@ -109,7 +109,8 @@ var ajaxDriver = function($) {
             REQUEST_REFILL_STATUS : "request_refill_status",
             REQUEST_WAITER : "request_waiter",
             REQUEST_WAITER_STATUS : "request_waiter_status",
-            REQUEST_ORDER_STATUS : "request_order_status"
+            REQUEST_ORDER_STATUS : "request_order_status",
+            REQUEST_NEWSFEED : "request_newsfeed"
         },
         registerMockCallbackForType : function( requestType, mockCallback ) {
             registeredMockCallbacks.push( new MockEntry(requestType, mockCallback) );

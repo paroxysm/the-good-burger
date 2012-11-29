@@ -54,7 +54,7 @@
 <div data-role="page" id="table-view" data-dom-cache="true">
 
     <div id="table-view-canvas" >
-        <div class="ui-grid-c" data-bind="foreach : columns">
+        <div class="ui-grid-b" data-bind="foreach : columns">
             <div data-role="collapsible" data-content-theme="c" data-bind="css : block"  data-corners="false" data-collapsed="false">
                 <h4 data-bind="text : name"></h4>
                 <ul data-role="collapsible-set">
@@ -64,13 +64,14 @@
                         Table <span data-bind="text : tablenumber"></span> - <span data-bind="text: tableStatusIndicator"></span>
                         <span data-bind="visible : needsHelp()" class="badge badge-needhelp"></span>
                         <span data-bind="visible : needsRefill()" class="badge badge-refill"></span>
-                        <span data-bind="visible : isPaid() && order != null" class="badge badge-paid"></span>
+                        <span data-bind="visible : isPaid()" class="badge badge-paid"></span>
                     </h3>
                     <ul data-role="listview" data-inset="true">
                         <a href="#" data-role="button" data-inline="true" data-bind="visible : needsHelp(), event: { tap : $parent.assisted} ">assisted</a>
                         <a href="#" data-role="button" data-inline="true" data-bind="visible: needsRefill(), event:{tap : $parent.refillServed }">service refill</a>
                         <a href="#" data-role="button" data-inline="true" data-bind="visible : hasOrder, event: {tap : $parent.orderOnRoute}">order on route</a>
                         <a href="#" data-role="button" data-inline="true" data-bind="visible: hasOrder, event: {tap : $parent.vieworder}">view order</a>
+                        <a href="#" data-role="button" data-bind="visible : isPaid(), event: { tap : $parent.clearTable }">clear table</a>
                         <li data-icon="delete" data-iconpos="left" data-bind="visible : !hasOrder(), disable : 'true'"><a href="#">No Order</a></li>
                     </ul>
                 </li>
