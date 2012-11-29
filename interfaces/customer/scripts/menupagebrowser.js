@@ -278,7 +278,9 @@
             //set the calories
             var caloriesElement = $(".menuitem-calories", contentClone );
             caloriesElement.text( recipe.getCalories().toFixed(2) );
-            caloriesElement.addClass("lucida-bold");
+            //set the price
+            var priceElement = $(".menuitem-price", contentClone );
+            priceElement.text( recipe.getPrice() );
             //set the image
             var imgSpace = $('.menuitem-image img', contentClone);
             imgSpace.attr('src', recipe.picture );
@@ -384,9 +386,9 @@
             //add tap handler
             removeControl.unbind('tap').bind('tap', onRemove);
 
-            liElement.append(removeControl);
+//            liElement.append(removeControl);
             //add the price
-            liElement.append( spanPriceElement );
+            liElement.append( spanPriceElement.append(removeControl) );
             //add it behind the list divider
             listDivider.after( liElement );
         }
@@ -400,7 +402,7 @@
             // remove from the food cart
             FOODCART.removeRecipe(clickedId);
             //remove li parent
-            clickedEntry.parent().remove();
+            clickedEntry.parents("li").remove();
             //refresh the food cart visually
 //            ulElement.trigger('create');
             ulElement.listview('refresh');
@@ -526,19 +528,44 @@
             else
                 self.gameOutcome("LOSE!");
             self.played(true);
+            self.tries( self.tries() -1 );
             //Add the coupon if they won
             if( self.gameOutcome() == 'WIN!') {
+                self.tries(0); //they can't play anymore
                 OrderManager.getOrder().addCoupon();
+                self.hasWon(true);
             }
+            //reset played if they still have chances and have not won.
+            if( self.tries()  > 0 && !self.hasWon() )
+                self.resetPlayed(); //reset it so that the burgers will be shown
             return true;
         }
+        //reset how many times we've played
         self.resetPlayed = function() {
             //make it timed so that it resets this after chance game page has been hidden
             window.setTimeout( function() {
                 self.played(false);
             }, 2000);
         }
+        //reset how many times we've played
+        self.resetTries = function() {
+            window.setTimeout( function() {
+                self.tries(3);
+            }, 1000);
+        }
+        // Reset tries, played and hasWon
+        self.resetGame = function() {
+            self.resetPlayed();
+            self.resetTries();
+            window.setTimeout( function() {
+                self.hasWon(false);
+            }, 1000);
+        }
+        //Set when the game is won, this shows  and hides some header elements that provide feedback to the user
+        self.hasWon = ko.observable(false);
+
         self.gameOutcome = ko.observable();
+        self.tries = ko.observable(3);
         self.played = ko.observable(false);
         self.outcomeMarkup = ko.computed( function() {
             var outCome = self.gameOutcome();

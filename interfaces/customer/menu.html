@@ -44,12 +44,12 @@
                 <a href="#confirm-order" data-role="button" data-theme="b" data-icon="ok" data-iconpos="bottom">Confirm Order</a>
             </div>
             <div class="ui-block-b">
-                <a href="#confirm-cart-clear" data-role="button" data-icon="delete" data-iconpos="bottom" data-rel="popup" data-position-to="window">Clear Cart</a>
+                <a href="#confirm-cart-clear" data-role="button" data-theme="b" data-icon="delete" data-iconpos="bottom" data-rel="popup" data-position-to="window">Clear Cart</a>
             </div>
         </div>
     </footer>
 
-    <div id="confirm-order" data-role="subpage-dialog">
+    <div id="confirm-order" data-role="subpage-dialog" data-close-btn-text="Back">
         <header data-role="header" data-theme="d">
             <h1>Confirm Order</h1>
         </header>
@@ -58,8 +58,13 @@
                 <li data-role="list-divider" id="orderconfirmation-listdivider">Items to Order</li>
             </ul>
             </br>
-            <div class="ui-grid-solo">
-                <a href="#chance-game" id="post-order" data-role="button" data-theme="b">Confirm</a>
+            <div class="ui-grid-a">
+                <div class="ui-block-a">
+                    <a href="#chance-game" id="post-order" data-role="button" data-theme="b">Confirm</a>
+                </div>
+                <div class="ui-block-b">
+                    <a href="#" data-rel="back" data-role="button">Not Yet</a>
+                </div>
                 <label>To-Go? <input type="checkbox" id="order-togo"/></label>
             </div>
         </div>
@@ -82,7 +87,8 @@
                         <img height="100px" width="100px"/>
                     </div>
                     <div class="ui-block-b">
-                        <p>Calories : <span class="menuitem-calories"></span></p>
+                        <p>Calories : <span class="menuitem-calories lucida-bold"></span></p>
+                        <p>Price : <span class="menuitem-price lucida-bold"></span></p>
                         <p class="menuitem-description"></p>
                     </div>
                 </div>
@@ -116,15 +122,18 @@
         </header>
         <div data-role="content">
             <h4>Play for 1 in 5 chance to win a free dessert coupon! By picking the winning item!</h4>
-            <h4 data-bind="visible : played()">You <span data-bind="text: gameOutcome"></span></h4>
-            <div data-bind="visible : played(), css : outcomeMarkup"></div>
+            <h4 data-bind="visible: tries() > 0">You have <span data-bind="text: tries"></span> out of 3 tries</h4>
+            <h4 data-bind="visible: tries() <= 0 && !hasWon()">You have used up all your chances. Better luck next time!</h4>
+            <h4 data-bind="visible : hasWon">You've won a coupon for a free dessert usable at checkout.</h4>
+            <h4 data-bind="visible : tries() < 3 && played()">You <span data-bind="text: gameOutcome"></span></h4>
+            <div data-bind="visible :tries () < 3 && played(), css : outcomeMarkup"></div>
             <ul data-role="listview" data-bind=" visible: !played(), foreach : burgers" data-mini="true">
                 <li><a href="#" data-bind="event: { tap : $parent.playGame }">
                     <img data-bind="css : buttonClass"/>
                     <h4 data-bind="text : buttonTxt"></h4>
                 </a></li>
             </ul>
-            <a href="postorder.html" data-role="button" data-theme="b" data-bind="event: { tap : resetPlayed }">Proceed</a>
+            <a href="postorder.html" data-role="button" data-theme="b" data-bind="event: { tap : resetGame }">Proceed</a>
         </div>
     </div>
 </div>
