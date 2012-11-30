@@ -23,6 +23,7 @@ var PECR = function($) {
 
     /* Stores our callbacks */
     var callbacks = new Array();
+    var loadedPages = new Array();
 
     /* Used to register new callbacks, requires the page id, type, and cb object.
     To register for all types, specify null for pageid.
@@ -48,6 +49,9 @@ var PECR = function($) {
     for( var idx in evtTypes ) { //register callbacks for each evt type that calls 'apply' w/ all our registered callbacks
         $(document).bind( evtTypes[idx], function(event, prevPage) {
             if( event.target instanceof  HTMLDivElement && $(event.target).attr('data-role') === 'page' ) { //
+                if( loadedPages.indexOf( event.target) == -1 ) {
+                    loadedPages.push( event.target );
+                }
                 console.log("callbackregistrar dispatched event :"+event.type +" for page :"+event.target.id);
                 var pageId = event.target.id;
                 for( var idx in callbacks) {
@@ -77,6 +81,12 @@ var PECR = function($) {
 
     return {
         registerCallback : REG_CB,
-        removeCallback : DEL_CB
+        removeCallback : DEL_CB,
+        unloadAllPages : function() {
+            for(var i in loadedPages ) {
+                $(loadedPages[i]).remove();
+            }
+        },
+        getLoadedPages : function() { return loadedPages; }
     };
 }(jQuery);

@@ -271,20 +271,8 @@
 }
 
 .post-order-panel {
-    width : 49%;
-    max-width: 49%;
-    float : left;
-    border-width: 1px;
-    border-style: solid;
-    padding: 10px;
-    box-sizing: border-box;
+
 }
 .newsfeed-panel {
     padding: 10px;
-    width : 49%;
-    max-width: 49%;
-    float : left;
-    /*border-width: 1px;
-    border-style: solid;*/
-    box-sizing: border-box;
 }

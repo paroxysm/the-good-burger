@@ -6,6 +6,8 @@
  * To change this template use File | Settings | File Templates.
  */
 ( function($) {
+    var self = this;
+    var SUPERVM = this;
     // Status ENUMERATIONS as numbers in the form of Strings.
     var STATUS = {
         PLACED : 3,
@@ -18,7 +20,7 @@
     }
     var STATUS_TEXT = {
         3 : "Order is Cooking",
-        4 : "Ready",
+        4 : "Order is Ready",
         5 : "Paid",
         6  : "Open",
         7  : "Occupied",
@@ -26,60 +28,98 @@
         9  : "Served",
         0 : "Closed"
     }
-    var MainContext = null; //Stores the page ( div[date-role='page'] when the page is first created
-    var RefillScreen = null;
-    var PaymentScreen = null;
-    var GameScreen = null;
-    var newsFeedPanel = null;
 
-    //cache the MainContext when post order page is first created
+    /* Our element workspaces*/
+    self.MainContext = null; //Stores the page ( div[date-role='page'] when the page is first created
+    self.RefillScreen = null;
+    self.PaymentScreen = null;
+    self.newsFeedPanel = null;
+
+    /* Our view models */
+    self.newsFeedViewModel;
+    self.confirmedCartViewModel;
+    self.placeNewOrderViewModel;
+    self.paymentViewModel;
+    self.refillViewModel;
+    self.requestWaiterViewModel;
+    self.orderViewModel;
+
+    /* We bind most of the elements to view models here */
     PECR.registerCallback("post-order", "pagecreate", function(evt) {
-        MainContext = $(evt.target);
+        /* instantiate our view models here since some of the constructors expect
+        data such as 'order's already existing.
+        This is acceptable behavior as these view models are put to work
+        when 'post-order' page is loaded anyway and not before
+        */
+        self.orderViewModel = new OrderViewModel();
+        self.refillViewModel = new RefillViewModel();
+        self.requestWaiterViewModel = new RequestWaiterViewModel();
+        self.paymentViewModel = new PaymentViewModel();
+        self.newsFeedViewModel = new NewsFeedViewModel();
+        self.confirmedCartViewModel = new ConfirmedCartViewModel();
+        self.placeNewOrderViewModel = new PlaceNewOrderViewModel();
 
-        //Bind 'request waiter' button to VM
-        var waiterButton = $("#request-waiter-button", MainContext );
-        ko.applyBindings( new RequestWaiterViewModel() , waiterButton[0] );
+        //cache this
+        self.MainContext = $(evt.target);
+        self.newsFeedPanel = $(".newsfeed-panel", self.MainContext);
+
+        /*//Bind 'request waiter' button to VM
+        var waiterButton = $("#request-waiter-button", self.MainContext );
+        console.log("Applying request waiter view model");
+        ko.applyBindings( self.requestWaiterViewModel, waiterButton[0] );
 
         //Bind the order status wrapper div to VM
-        var orderStatusWrapper = $("#order-status-wrapper", MainContext );
+        var orderStatusWrapper = $("#order-status-wrapper", self.MainContext );
         if( !orderStatusWrapper.length ) throw new Error("#order-status-wrapper is non existent!");
-        ko.applyBindings( new OrderStatusViewModel(), orderStatusWrapper[0] );
+        console.log("Applying order view model");
+        ko.applyBindings( self.orderViewModel, orderStatusWrapper[0] );
 
         //Bind news feed to VM
-        newsFeedPanel = $(".newsfeed-panel", MainContext);
-        if( !newsFeedPanel.length) throw new Error(".newsfeed-panel is missing!");
-        ko.applyBindings( new NewsFeedViewModel(), newsFeedPanel[0] );
 
-        displayConfirmedOrder();
+        if( !self.newsFeedPanel.length) throw new Error(".newsfeed-panel is missing!");
+        console.log("Applying news feed view model");
+        ko.applyBindings( self.newsFeedViewModel, self.newsFeedPanel[0] );
+
+        //Apply bindings to 'Pay Order' button
+        var openPaymentsButton = $("#payment-screen" );
+        if( !openPaymentsButton.length ) throw new Error("Pay Order(#payment-screen) button is missing!");
+        //we apply to this buttons since the button gets a check/pending badge when payments are being processed.
+        console.log("Applying payment view model");
+        ko.applyBindings( self.paymentViewModel, openPaymentsButton[0]);
+
+        //apply bindings for listing the ordered items, total calories and price.
+        var confirmedcardUl = $("#confirmed-cart", self.MainContext );
+        //apply ko bindings to only confirmed cart ul element
+        console.log("Applying confirmed cart view model");
+        ko.applyBindings( self.confirmedCartViewModel , confirmedcardUl[0]);*/
+        ko.applyBindings( self, MainContext[0] );
     });
 
     //Payment screen initialization
     PECR.registerCallback("payment-screen", "pageinit", function(event) {
         // Add functionality for our #payment-screen dialog by applying bindings
-        PaymentScreen = $(event.target);
-        if( !PaymentScreen.length ) throw new Error("#payment-screen dialog is missing!");
-        //Create a new payment view model as bind it to payment screen
-        var paymentViewModel = new PaymentViewModel();
-        //use ko.applyBinding's 2nd parameter to limit where we want the bindings to be applied
-        ko.applyBindings(paymentViewModel, PaymentScreen[0] );
-//        paymentScreenDialog.trigger('create');
+        self.PaymentScreen = $(event.target);
+        if( !self.PaymentScreen.length ) throw new Error("#payment-screen dialog is missing!");
+        //bindings applied here actually apply to the payments workspace.
+        console.log("Applying payment view model again");
+        ko.applyBindings( self, self.PaymentScreen[0] );
+
     });
 
+    /* Refill Screen initialization */
     PECR.registerCallback("refill-screen", "pagecreate", function(event) {
-        RefillScreen = $(event.target);
-        if( ! RefillScreen.length) throw new Error("refill-screen is missing!");
-        ko.applyBindings( new RefillScreenViewModel(), RefillScreen[0]);
+        self.RefillScreen = $(event.target);
+        if( ! self.RefillScreen.length) throw new Error("refill-screen is missing!");
+//        ko.cleanNode( SUPERVM.RefillScreen[0] );
+        ko.applyBindings(  self , self.RefillScreen[0]);
 
     });
 
-    /* Called to create markup for showing the confirmed ordered items in a 'ul' with an id of 'confirmed-cart' */
-    function displayConfirmedOrder( ) {
-        var confirmedcardUl = $("#confirmed-cart", MainContext );
-        //apply ko bindings to only confirmed cart ul element
-        ko.applyBindings( new ConfirmedCartViewModel(), confirmedcardUl[0]);
-        //make jqm apply bindings
-//        confirmedcardUl.listview('refresh');
-    }
+    /* Place new order screen & button initialization */
+    PECR.registerCallback("place-another-order-confirmation", "pagecreate", function(event) {
+//        ko.cleanNode( event.target);
+        ko.applyBindings( self , event.target);
+    });
 
 
     /* CONFIRMED ITEMS  VIEW MODEL
@@ -105,7 +145,7 @@
     * Responsible for updating our order status and also placing the ajax calls that fetch the status
     *
     * */
-    function OrderStatusViewModel() {
+    function OrderViewModel() {
         var self = this;
 
         self.order = OrderManager.getOrder();
@@ -137,12 +177,15 @@
             };
             //make the ajax call
             ajaxDriver.call( ajaxDriver.REQUESTS.REQUEST_ORDER_STATUS, payload, function(data) {
-                var status = data.status;
-                self.orderStatus( status );
-                self.order.setStatus(status);
-                console.log("REQUEST_ORDER_STATUS yielded [%s]", status);
-                if( status == STATUS.PAID ) {
-                    console.log("Order has been paid!");
+                var status = data.status; //retrieve status from payload
+                if( status != STATUS.PAID ) //ignore paid status as it does nothing important for this view model
+                    self.orderStatus( status );
+
+                self.order.setStatus(status); //update our order object's status
+                console.log("REQUEST_ORDER_STATUS yielded [%s]", STATUS_TEXT[status]);
+                //remove the polling event once our order is ready.
+                if( status == STATUS.READY ) {
+                    console.log("Order is ready!");
                     window.clearInterval(pollEvent );
                 }
             });
@@ -203,6 +246,7 @@
 
         self.removePayment = function(payment) {
             self.myPayments.remove(payment);
+            self.paymentAmount.valueHasMutated(); //trigger a read operation
         }
 
         //What type of payment the user has selected
@@ -264,7 +308,7 @@
                 payment.bankRouting = self.eCheckViewModel.bankRouting();
                 payment.bankAccount = self.eCheckViewModel.bankAccount();
             }
-            // TO-DO : Add logic for how much coupon should take away for only the menu items that it applies to.
+            // TO-DO : Add logic xfor how much coupon should take away for only the menu items that it applies to.
             //add to the list of payments
             self.myPayments.push(payment );
             //increment payment id
@@ -279,6 +323,9 @@
 
         /* Invoked when submit payment button is clicked */
         self.submitPayment = function() {
+            //set payment status to pending
+            self.paymentStatus( STATUS.PENDING );
+
             //create our JSON object and send our payment to the backend
             var payload  = {
                     orderid : self.ourOrder.getID(),
@@ -304,17 +351,17 @@
         /* True when the order has been submitted */
         self.submitted = ko.observable(false);
         /* Holds the last payment status */
-        self.paymentStatus = ko.observable( STATUS.PENDING );
+        self.paymentStatus = ko.observable();
         //What is shown to the user
         self.paymentStatusText = ko.computed( function() {
             return STATUS_TEXT[ self.paymentStatus() ];
         })
         self.paymentMarkupClass = ko.computed(function() {
             var paymentstatus = self.paymentStatus();
-            var paymentClass;
-            if( self.paymentStatus() == STATUS.PENDING )
+            var paymentClass = null;
+            if( paymentstatus == STATUS.PENDING )
                 paymentClass = "payment-pending";
-            else if( self.paymentStatus() == STATUS.PAID )
+            else if( paymentstatus == STATUS.PAID )
                 paymentClass = "payment-paid";
             return paymentClass;
         });
@@ -391,7 +438,7 @@
     }
 
     /* REFILL SCREEN VIEW MODEL */
-    function RefillScreenViewModel() {
+    function RefillViewModel() {
         var self = this;
 
         self.order = OrderManager.getOrder(); //Order instance
@@ -423,7 +470,7 @@
         self.submitRequest = function() {
             self.refillStatus( STATUS.PENDING ); //mark status as pending
             //get a list of recipes that we have selected
-            var selectedRecipes = $("input:checked", RefillScreen );
+            var selectedRecipes = $("input:checked", self.RefillScreen );
             var checkedRecipes = new Array();
             function addToCheckedRecipes(idx, element) {
                 var recipeId = $(element).attr('recipe-id');
@@ -436,8 +483,9 @@
                 }
             }
             selectedRecipes.each( function(idx, element) {
+//                addToCheckedRecipes(idx, element);
                 return function() { addToCheckedRecipes(idx, element); };
-            }()  );
+            }() );
             //create our payload
             var payload = {
                 orderid : self.order.getID(),
@@ -469,15 +517,13 @@
         }
     }
 
-    PECR.registerCallback("place-another-order-confirmation", "pagecreate", function(event) {
-        ko.applyBindings( new PlaceNewOrderViewModel(), event.target);
-    });
-
     function PlaceNewOrderViewModel() {
         var self = this;
+
         //The user has confirmed that they want to start over, clear the food cart
         self.Confirm = function() {
             FOODCART.clear();
+//            PECR.unloadAllPages();
             console.log("User has confirmed, clearing food cart!");
             return true;
         }
@@ -506,8 +552,11 @@
                 self.categories.push( payload[i] );
             }
             //refresh listview
-            $("ul", newsFeedPanel).listview("refresh");
-            console.log("Feed has been recieved, populating!");
+            if( SUPERVM.newsFeedPanel ) {
+                SUPERVM.newsFeedPanel.trigger('create');
+                $("ul", SUPERVM.newsFeedPanel).listview("refresh");
+            }
+            console.log("Feed has been received, populating!");
         }
         self.openHeadline = function( headline ) {
             self.selectedHeadline( headline );

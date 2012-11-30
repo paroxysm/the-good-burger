@@ -32,17 +32,15 @@
         <h3>Payment Screen</h3>
     </div>
     <div data-role="content" class="ui-grid-a">
-        <div class="ui-block-a">
+        <div class="ui-block-a post-order-panel" data-bind="with: orderViewModel">
             <div class="ui-grid-solo" id="order-status-wrapper">
-                <div class="ui-block-a">
-                    <h4 class="ui-title">Order Status :
+                    <h4>Order Status :
                         <div data-bind="css : orderStatusMarkup"></div>
                         <span data-bind="text : orderStatusText"></span>
                     </h4>
-                </div>
             </div>
 
-            <div id="confirmed-cart">
+            <div id="confirmed-cart" data-bind="with : confirmedCartViewModel">
                 <ul data-role="listview" data-inset="true">
                     <li data-role="list-divider">Ordered Items</li>
                     <!-- ko foreach : recipes -->
@@ -63,33 +61,37 @@
                         <span class="ui-li-aside" data-bind="text: totalCalories"/>
                     </li>
                 </ul>
-                <a href="#payment-screen" data-role="button" date-rel="dialog" data-theme="b">Pay Order</a>
+                <a href="#payment-screen" data-role="button" date-rel="dialog" data-theme="b"><span style="float : left" data-bind="css : $root.paymentViewModel.paymentMarkupClass" ></span><span>Pay Order</span></a>
             </div>
         </div>
-        <div class="ui-block-b newsfeed-panel">
-            <h4 class="ui-title">CNN NewsFeed</h4>
-            <ul data-role="listview" data-bind="foreach : categories">
-                <li data-role="list-divider" data-bind="text : name"></li>
-                <!-- ko foreach : headlines -->
-                <li>
-                    <a href="#" data-bind="text: text, event : { tap : $root.openHeadline }"></a>
-                </li>
-                <!-- /ko -->
-            </ul>
+        <div class="ui-block-b newsfeed-panel" data-bind="with : newsFeedViewModel">
+            <h4>CNN NewsFeed</h4>
+            <div data-role="collapsible-set" data-bind="foreach : categories" data-content-theme="c">
+                <div data-role="collapsible">
+                    <h4 data-bind="text : name"></h4>
+                    <ul data-role="listview" data-bind="foreach : headlines">
+                        <li>
+                            <a href="#" data-bind="text: text, event : { tap : $root.newsFeedViewModel.openHeadline }"></a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
         </div>
         </br>
     </div>
     <footer data-role="footer" data-theme="c">
         <div data-role="navbar" data-iconpos="top">
             <ul>
-                <li><a href="#refill-screen" data-role="button" data-inline="true" data-theme="b">Request Refill</a></li>
+                <li><a href="#refill-screen" data-role="button" data-inline="true" data-theme="b" data-prefetch>Request Refill</a></li>
+                <!-- ko with : requestWaiterViewModel -->
                 <li><a href="#" data-role="button" data-inline="true" data-theme="b" data-bind="event: { tap : requestWaiter }, css : requestStatusMarkupClass" id="request-waiter-button">Request Assistance</a></li>
-                <li><a href="#place-another-order-confirmation" id="place-another-order" data-role="button" data-inline="true" data-theme="b">Place Order</a></li>
+                <!-- /ko -->
+                <li><a href="#place-another-order-confirmation" id="place-another-order" data-role="button" data-inline="true" data-theme="b" data-prefetch>Place Order</a></li>
             </ul>
         </div>
     </footer>
 
-    <div data-role="subpage-dialog" id="payment-screen" data-theme="c" data-overlay-theme="a">
+    <div data-role="subpage-dialog" id="payment-screen" data-theme="c" data-overlay-theme="a" data-bind="with : paymentViewModel">
         <header data-role="header" data-theme="c">
             <h4>Pay your Bill</h4>
         </header>
@@ -147,7 +149,7 @@
         </div>
     </div>
 
-    <div data-role="subpage-dialog" id="refill-screen">
+    <div data-role="subpage-dialog" id="refill-screen" data-bind="with : refillViewModel">
         <header data-role="header" data-theme="c">
             <h1>Request Refills</h1>
         </header>
@@ -172,7 +174,7 @@
         </div>
     </div>
 
-    <div id="place-another-order-confirmation" data-role="subpage-dialog">
+    <div id="place-another-order-confirmation" data-role="subpage-dialog" data-bind="with : placeNewOrderViewModel">
         <header data-role="header" data-theme="c">
             <h1>Are you Sure?</h1>
         </header>

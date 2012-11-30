@@ -53,6 +53,7 @@ var ajaxDriver = function($) {
         var dataSent = { request_type : requestType, payload : payload };
         //place the ajax call
         console.log("Placed ajax call for request type '%s'",requestType);
+        try {
         jQuery.ajax(SETTINGS.getControllerURL(), {
             type : (method ? method : defaultMethod ),
             data : dataSent,
@@ -62,6 +63,11 @@ var ajaxDriver = function($) {
             error : errorWrapper( errorHandler, requestType, payload),
             timeout : (timeout ? timeout : DEFAULT_TIMEOUT)
         } );
+        }
+        catch(e) {
+            console.log("Caught exception "+e);
+            throw e;
+        }
     }
 
 
