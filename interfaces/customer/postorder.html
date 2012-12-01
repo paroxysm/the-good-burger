@@ -71,7 +71,7 @@
                     <h4 data-bind="text : name"></h4>
                     <ul data-role="listview" data-bind="foreach : headlines">
                         <li>
-                            <a href="#" data-bind="text: text, event : { tap : $root.newsFeedViewModel.openHeadline }"></a>
+                            <a href="#view-headline" data-rel="popup" data-overlay-theme="a" data-position-to="window" data-bind="text: text, event : { tap : $root.newsFeedViewModel.openHeadline }, css : { 'ui-btn-active' : $root.newsFeedViewModel.selectedHeadline }"></a>
                         </li>
                     </ul>
                 </div>
@@ -86,7 +86,9 @@
                 <!-- ko with : requestWaiterViewModel -->
                 <li><a href="#" data-role="button" data-inline="true" data-theme="b" data-bind="event: { tap : requestWaiter }, css : requestStatusMarkupClass" id="request-waiter-button">Request Assistance</a></li>
                 <!-- /ko -->
-                <li><a href="#place-another-order-confirmation" id="place-another-order" data-role="button" data-inline="true" data-theme="b" data-prefetch>Place Order</a></li>
+                <!-- ko with : paymentViewModel -->
+                <li><a href="#place-another-order-confirmation" id="place-another-order" data-role="button" data-inline="true" data-theme="b" data-prefetch >Place New Order</a></li>
+                <!-- /ko -->
             </ul>
         </div>
     </footer>
@@ -118,9 +120,9 @@
                 <div class="ui-block-a" id="payment-types">
                     <label data-bind="visible : totalAmountLeft() > 0.0">Amount :<input type="number" data-bind="value : guardedPaymentAmount, disable : isCouponSelected"/></label>
                     </br>
-                    <select data-bind="options : allowedTypes, value : selectedType, optionsCaption : 'Select payment:', disable : totalAmountLeft() <= 0">
+                    <select data-bind="options : allowedTypes, value : selectedTypeListener, optionsCaption : 'Select payment:', disable : totalAmountLeft() <= 0">
                     </select>
-                    <select data-bind="options : tipChart, optionsCaption : 'Tip Chart', value :tipAmount, optionsText : computeTipChartText, disable : totalAmountLeft() <= 0">
+                    <select data-bind="options : tipChart, optionsCaption : 'Tip Chart', value :tipAmount, optionsText : computeTipChartText, disable : totalAmountLeft() <= 0 || isCouponSelected()">
 
                     </select>
                 </div>
@@ -179,8 +181,8 @@
             <h1>Are you Sure?</h1>
         </header>
         <div data-role="content" >
-            <!--<p data-bind="visible : !order().isPaid()">You cannot place a new order without paying for the current one first!</p>-->
-            <div >
+            <p data-bind="visible : !$root.paymentViewModel.submitted()">You cannot place a new order without paying for the current one first!</p>
+            <div data-bind="visible : $root.paymentViewModel.submitted">
                 <p>Placing another order will clear your current cart and receipt.</p>
                 <h4>Are you sure you want place another order?</h4>
                 <a href="index.html" data-role="button" data-inline="true" data-theme="b" data-bind="event : { tap : Confirm }">Yes I do</a>
@@ -189,8 +191,16 @@
         </div>
     </div>
 
-    <div data-role="popup" id="view-headline" data-position-to="window" data-overlay-theme="a" data-theme="c">
-
+    <div data-role="popup" id="view-headline" data-position-to="window" data-overlay-theme="a" data-theme="c" data-bind="with : newsFeedViewModel" class="ui-content">
+        <a href="#" data-role="button" data-rel="back" data-icon="delete" data-inline="true" data-bind="event: { tap : clearHeadline }">Close</a>
+        <!-- ko with : selectedHeadline -->
+            <h4 data-bind="text : text"></h4>
+            <p data-bind="html : content"></p>
+            <!-- ko if : videoLink  != null -->
+                <iframe data-bind="attr : { src : videoLink }" width="640" height="640" data-inline="true">
+                </iframe>
+             <!-- /ko -->
+        <!-- /ko-->
     </div>
 </div>
 </body>

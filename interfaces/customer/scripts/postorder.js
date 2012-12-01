@@ -92,8 +92,12 @@
         //apply ko bindings to only confirmed cart ul element
         console.log("Applying confirmed cart view model");
         ko.applyBindings( self.confirmedCartViewModel , confirmedcardUl[0]);*/
-        ko.applyBindings( self, MainContext[0] );
+        ko.applyBindings( SUPERVM, MainContext[0] );
     });
+
+   /* PECR.registerCallback("post-order", "pagebeforeshow", function(evt) {
+        ko.applyBindings( SUPERVM , MainContext[0] );
+    });*/
 
     //Payment screen initialization
     PECR.registerCallback("payment-screen", "pageinit", function(event) {
@@ -130,11 +134,12 @@
         var self = this;
 
         self.order = OrderManager.getOrder();
-        self.recipes = self.order.getRecipes();
+        self.recipes = ko.observableArray( self.order.getRecipes() );
         self.totalCalories = function() {
+            var recipes = self.recipes();
             var calories = 0;
-            for( var i in self.recipes ) {
-                calories += parseInt( self.recipes[i].getCalories() );
+            for( var i in recipes ) {
+                calories += parseInt( recipes[i].getCalories() );
             }
             return calories;
         }();
@@ -247,6 +252,10 @@
         self.removePayment = function(payment) {
             self.myPayments.remove(payment);
             self.paymentAmount.valueHasMutated(); //trigger a read operation
+            //if it's a coupon payment, re-add coupon to list of allowable types
+            if( payment.type == "COUPON" ) {
+                self.allowedTypes.push( "COUPON");
+            }
         }
 
         //What type of payment the user has selected
@@ -254,9 +263,10 @@
         self.selectedTypeListener = ko.computed( {
             read : function() { return self.selectedType(); },
             write:  function(value) {
+
                 self.selectedType(value);
                 //If the selected type is coupon, check which recipes support coupon and use the highest cost dessert
-                if( self.isCouponSelected() ) {
+                if( value == "COUPON") {
                     var recipes = self.ourOrder.getRecipes();
                     var maxPrice = 0.0;
                     for( var i in  recipes ) {
@@ -265,10 +275,10 @@
                         }
                     }
                     //update the payment amount to 'maxPrice'
-                    if( maxPrice > 0.0 ) {
-                        self.paymentAmount(maxPrice );
-                    }
+                    self.paymentAmount(maxPrice );
                 }
+                else
+                    self.paymentAmount( self.totalAmountLeft() );
             }
         })
         self.isCardSelected = ko.computed( function() { return self.selectedType() == "CREDIT CARD"; } );
@@ -286,7 +296,6 @@
                 var amountLeftAsNumber = parseFloat( tippedTotal );
                 if( isNaN(asNumber) || asNumber <= 0 || asNumber >  amountLeftAsNumber )
                     asNumber = amountLeftAsNumber;
-                self.paymentAmount(0); //Force a value change so that 'read' will get invoked
                 self.paymentAmount( asNumber.toFixed(2) );
             }
         } );
@@ -315,8 +324,13 @@
             self.currentId = this.currentId++;
             //update self.paymentAmount() with total amount left
             self.guardedPaymentAmount( self.getTippedTotal() );
+            self.selectedType(null);
+            //if it's a coupon payment, remove coupon from list
+            if( payment.type == "COUPON" )
+                self.allowedTypes.splice( self.allowedTypes.indexOf("COUPON"), 1);
+            //clear the type so they can re-select
+            self.selectedType(null);
             if( self.getTotalAmountLeft() <= 0 ) {
-                self.selectedType(null);
                 self.tipAmount(null);
             }
         }
@@ -346,7 +360,7 @@
                     }
                 });
             }
-            pollId = window.setInterval( periodicChargeOrderStatus, 5000);
+            pollId = window.setInterval( periodicChargeOrderStatus, 1000);
         }
         /* True when the order has been submitted */
         self.submitted = ko.observable(false);
@@ -418,7 +432,7 @@
 
                 console.log("Waiter has been requested!");
                 ///Register the interval event
-                var pollEvent = window.setInterval( periodicStatusPoll, 10000);
+                var pollEvent = window.setInterval( periodicStatusPoll, 1000);
                 function periodicStatusPoll() {
                     //request the status of the waiter
                     var payload = {
@@ -483,7 +497,6 @@
                 }
             }
             selectedRecipes.each( function(idx, element) {
-//                addToCheckedRecipes(idx, element);
                 return function() { addToCheckedRecipes(idx, element); };
             }() );
             //create our payload
@@ -511,7 +524,7 @@
                     });
                 }
                 //Register the periodic poll event
-                pollEvent = window.setInterval( periodicRefillStatusPoll, 5000 );
+                pollEvent = window.setInterval( periodicRefillStatusPoll, 1000 );
             }
             ajaxDriver.call( ajaxDriver.REQUESTS.REQUEST_REFILL, payload, createPollingEvent  );
         }
@@ -523,7 +536,8 @@
         //The user has confirmed that they want to start over, clear the food cart
         self.Confirm = function() {
             FOODCART.clear();
-//            PECR.unloadAllPages();
+            MenuMgr.clearMenus();
+            PECR.unloadPage( "post-order");
             console.log("User has confirmed, clearing food cart!");
             return true;
         }
@@ -560,8 +574,10 @@
         }
         self.openHeadline = function( headline ) {
             self.selectedHeadline( headline );
-            console.log("Opening video");
         };
+        self.clearHeadline = function() {
+            self.selectedHeadline(null);
+        }
     }
 
 })(jQuery);

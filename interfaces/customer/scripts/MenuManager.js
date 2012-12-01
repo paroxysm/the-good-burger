@@ -55,6 +55,9 @@ var MenuMgr = function() {
             }
             return foundmenu;
         },
+        clearMenus : function() {
+            menus.splice( 0, menus.length );
+        },
         /* Fetches our menus from back end */
         fetchMenus : function( onFetchedCb ) { internalfetchmenus.apply(this, arguments); onMenusFetchedCB = onFetchedCb; },
         /* Fetch a specific menu from the back end */

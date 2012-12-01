@@ -84,7 +84,25 @@ var PECR = function($) {
         removeCallback : DEL_CB,
         unloadAllPages : function() {
             for(var i in loadedPages ) {
-                $(loadedPages[i]).remove();
+                var found = false;
+                if( arguments != null ) {
+                    for( var j in arguments  ) {
+                        if( arguments[j] == loadedPages[i].id )
+                        {
+                            found = true;
+                            break;
+                        }
+                    }
+                }
+                if( !found )
+                    $(loadedPages[i]).remove();
+            }
+        },
+        unloadPage : function(page) {
+            for( var i in loadedPages ) {
+                if( page == loadedPages[i].id ) {
+                    $( loadedPages[i]).remove();
+                }
             }
         },
         getLoadedPages : function() { return loadedPages; }

@@ -333,6 +333,10 @@
                     newRecipe.setRefillable();
                 else
                     newRecipe.setNotRefillable();
+                if( oldRecipe.supportsCoupon() )
+                    newRecipe.addCoupon();
+                else
+                    newRecipe.removeCoupon();
                 var checkedIngredients = $('input:checked', controlsSpace );
                 checkedIngredients.each( function(index) {
                     var ingredientName = $(this).attr('ingredient-name'); //we've selected input type, but we're interested parent label
@@ -514,6 +518,10 @@
     /* Game View Model  */
     function GameViewModel() {
         var self = this;
+
+        self.resetPlayedEvent = null;
+        self.resetTriesEvent = null;
+
         self.burgers = [
             {buttonTxt: "Burger 1", buttonClass : 'game-red-burger'},
             {buttonTxt: "Burger 2", buttonClass : 'game-blue-burger'},
@@ -524,6 +532,7 @@
 
         self.playGame = function() {
             if( Math.floor( Math.random()*5 +1) == 5 )
+//            if( Math.random() )
                 self.gameOutcome("WIN!");
             else
                 self.gameOutcome("LOSE!");
@@ -542,14 +551,16 @@
         }
         //reset how many times we've played
         self.resetPlayed = function() {
+            window.clearTimeout( self.resetPlayedEvent );
             //make it timed so that it resets this after chance game page has been hidden
-            window.setTimeout( function() {
+            self.resetPlayedEvent = window.setTimeout( function() {
                 self.played(false);
             }, 2000);
         }
         //reset how many times we've played
         self.resetTries = function() {
-            window.setTimeout( function() {
+            window.clearTimeout( self.resetTriesEvent );
+            self.resetTriesEvent = window.setTimeout( function() {
                 self.tries(3);
             }, 1000);
         }
@@ -559,7 +570,8 @@
             self.resetTries();
             window.setTimeout( function() {
                 self.hasWon(false);
-            }, 1000);
+            }, 5000);
+            return true;
         }
         //Set when the game is won, this shows  and hides some header elements that provide feedback to the user
         self.hasWon = ko.observable(false);
