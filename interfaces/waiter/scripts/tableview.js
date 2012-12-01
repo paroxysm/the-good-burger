@@ -81,12 +81,12 @@ function TableViewViewModel($) {
         }
 
         column.clearTable = function( tablestatus ) {
-            console.log("Clearing table %s", tablestatus.tablenumber );
+            console.log("Clearing table %s", tablestatus.tablenumber() );
             var payload  = {
                 id : tablestatus.order.id
             }
             ajaxDriver.call( ajaxDriver.REQUESTS.CLEAR_TABLE, payload, function() {
-                console.log("Table %s has been cleared!", tablestatus.tablenumber);
+                console.log("Table %s has been cleared!", tablestatus.tablenumber() );
 
             });
         }
@@ -181,9 +181,9 @@ function TableViewViewModel($) {
     function ViewOrderVM() {
         var self = this;
 
-        self.tableStatus = null;
+        self.tableStatus = ko.observable();
         self.setTableStatus = function(tableStatus) {
-            self.tableStatus = tableStatus;
+            self.tableStatus( tableStatus );
             self.recipes( tableStatus.order.getRecipes() );
             self.selectedRecipe( self.recipes()[0] );
         }
@@ -203,7 +203,7 @@ function TableViewViewModel($) {
         self.submit = function() {
             //create a new order based of the current recipes
             var order = new Order();
-            order.setID( self.tableStatus.order.getID() );
+            order.setID( self.tableStatus().order.getID() );
             var editedRecipes = self.recipes();
             for( var i in editedRecipes ) {
                 order.addRecipe( editedRecipes[i] );
@@ -213,7 +213,7 @@ function TableViewViewModel($) {
                 console.log("Order successfully edited!");
             });
             //Replace the current order w/ this one given to us
-            self.tableStatus.order = order;
+            self.tableStatus().order = order;
         }
 
     }

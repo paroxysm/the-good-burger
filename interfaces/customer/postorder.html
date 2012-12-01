@@ -71,7 +71,7 @@
                     <h4 data-bind="text : name"></h4>
                     <ul data-role="listview" data-bind="foreach : headlines">
                         <li>
-                            <a href="#view-headline" data-rel="popup" data-overlay-theme="a" data-position-to="window" data-bind="text: text, event : { tap : $root.newsFeedViewModel.openHeadline }, css : { 'ui-btn-active' : $root.newsFeedViewModel.selectedHeadline }"></a>
+                            <a href="#view-headline" data-rel="popup" data-overlay-theme="a" data-position-to="window" data-bind="text: text, event : { tap : $root.newsFeedViewModel.openHeadline }, css : { 'ui-btn-active' : $root.newsFeedViewModel.selectedHeadline() }"></a>
                         </li>
                     </ul>
                 </div>

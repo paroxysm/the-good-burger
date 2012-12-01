@@ -69,7 +69,6 @@
                     <ul data-role="listview" data-inset="true">
                         <a href="#" data-role="button" data-inline="true" data-bind="visible : needsHelp(), event: { tap : $parent.assisted} ">assisted</a>
                         <a href="#" data-role="button" data-inline="true" data-bind="visible: needsRefill(), event:{tap : $parent.refillServed }">service refill</a>
-                        <a href="#" data-role="button" data-inline="true" data-bind="visible : hasOrder, event: {tap : $parent.orderOnRoute}">order on route</a>
                         <a href="#" data-role="button" data-inline="true" data-bind="visible: hasOrder, event: {tap : $parent.vieworder}">view order</a>
                         <a href="#" data-role="button" data-bind="visible : isPaid(), event: { tap : $parent.clearTable }">clear table</a>
                         <li data-icon="delete" data-iconpos="left" data-bind="visible : !hasOrder(), disable : 'true'"><a href="#">No Order</a></li>
@@ -85,7 +84,9 @@
     <header data-role="header" data-theme="c">
         <a href="#table-view" data-icon="back" data-theme="b">Back</a>
         <h1>Edit Order</h1>
-        <a href="#table-view" data-icon="save" data-theme="b" data-bind="event : {tap : submit}">Save</a>
+        <!-- ko if : tableStatus() -->
+        <a href="#table-view" data-icon="save" data-theme="b" data-bind="event : {tap : submit}, visible : !tableStatus().isPaid()">Save</a>
+        <!-- /ko -->
     </header>
 
     <div data-role="content">

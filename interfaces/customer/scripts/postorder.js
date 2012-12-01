@@ -16,7 +16,8 @@
         OPEN  : 6,
         OCCUPIED : 7,
         PENDING : 8,
-        SERVED : 9
+        SERVED : 9,
+        CLOSED : 0
     }
     var STATUS_TEXT = {
         3 : "Order is Cooking",
@@ -189,8 +190,8 @@
                 self.order.setStatus(status); //update our order object's status
                 console.log("REQUEST_ORDER_STATUS yielded [%s]", STATUS_TEXT[status]);
                 //remove the polling event once our order is ready.
-                if( status == STATUS.READY ) {
-                    console.log("Order is ready!");
+                if( status == STATUS.READY || status == STATUS.CLOSED) {
+                    console.log("Order is ready/closed!");
                     window.clearInterval(pollEvent );
                 }
             });
